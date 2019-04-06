@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Form hidden="true" name="CreateModifyDeleteForm" type="RegisterIdentity">
+  <Attributes>
+    <Map>
+      <entry key="pageTitle" value="User Selection Form"/>
+    </Map>
+  </Attributes>
+  <Section>
+    <Field displayName="UserName" filterString="" name="identityName" postBack="true" required="true" type="sailpoint.object.Identity"/>
+    <Field displayName="Application" dynamic="true" postBack="true" filterString="" name="application" type="string">
+     <AllowedValuesDefinition>
+              <Value>
+                <List>
+                  <String>Dexperts AD Group 13</String>
+                  <String>Dexperts JDBC Group 13</String>
+                </List>
+              </Value>
+            </AllowedValuesDefinition>
+    </Field>
+	 <Field displayName="Select Operation" dynamic="true" postBack="true" filterString="" name="operation" type="string">
+     <AllowedValuesDefinition>
+              <Value>
+                <List>
+                  <String>Create</String>
+                  <String>Modify</String>
+				  <String>Delete</String>
+                </List>
+              </Value>
+            </AllowedValuesDefinition>
+    </Field>
+	<Field displayName="Choose New OU" dynamic="true" filterString="" name="ou" type="string">
+		<Attributes>
+			<Map>
+				<entry key="hidden">
+					<value>
+						<Script>
+							<Source>
+								if ("Modify".equals(operation) @and "Dexperts AD Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							</Source>
+						</Script>
+					</value>
+				</entry>
+			</Map>
+		</Attributes>
+     <AllowedValuesDefinition>
+              <Value>
+                <List>
+                  <String>TEXAS</String>
+                  <String>NEWYORK</String>
+				  
+                </List>
+              </Value>
+            </AllowedValuesDefinition>
+			
+    </Field>
+	 <Field displayName="Choose New Group" dynamic="true" filterString="" name="adGroup" type="string">
+	 <Attributes>
+			<Map>
+				<entry key="hidden">
+					<value>
+						<Script>
+							<Source>
+								if ("Modify".equals(operation) @and "Dexperts AD Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							</Source>
+						</Script>
+					</value>
+				</entry>
+			</Map>
+		</Attributes>
+     <AllowedValuesDefinition>
+              <Value>
+                <List>
+                  <String>FinanceGroup</String>
+                  <String>HrGroup</String>
+				  <String>ItGroup</String>
+                </List>
+              </Value>
+            </AllowedValuesDefinition>
+    </Field>
+		 <Field displayName="Choose SQL DB" dynamic="true" filterString="" name="mySqlDb" type="string">
+		 <Attributes>
+			<Map>
+				<entry key="hidden">
+					<value>
+						<Script>
+							<Source>
+								if ("Modify".equals(operation) @and "Dexperts JDBC Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							</Source>
+						</Script>
+					</value>
+				</entry>
+			</Map>
+		</Attributes>
+     <AllowedValuesDefinition>
+              <Value>
+                <List>
+                  <String>Employee ID</String>
+                  <String>User Name</String>
+				  <String>First Name</String>
+				  <String>Last Name</String>
+				  
+                </List>
+              </Value>
+            </AllowedValuesDefinition>
+    </Field>
+
+  </Section>
+  <Button action="next" label="Submit"/>
+  <Button action="back" label="Back"/>
+</Form>
