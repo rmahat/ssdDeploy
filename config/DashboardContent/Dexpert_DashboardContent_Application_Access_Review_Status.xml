@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<DashboardContent name="Application Access Review Status" regionSize="0" source="dashboard/contentApplicationCertPercent.xhtml" title="dash_title_app_cert_status" type="Compliance">
+  <Description>dash_description_app_cert_status</Description>
+  <RequiredRights>
+    <Reference class="sailpoint.object.SPRight" name="ViewApplicationCertificationStatus"/>
+  </RequiredRights>
+</DashboardContent>

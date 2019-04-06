@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="correlation rule" type="Correlation">
+  <Description>Identity Correlation Rules are used to find identities to which new accounts can be attached.
+
+A correlation rule must return a Map with one of the specified Return arguments.</Description>
+  <Signature returnType="Map"/>
+  <Source><![CDATA[//Coorelation by ID
+//Map map = new HashMap();
+//String id = account.getStringAttribute("id");
+//map.put ("identityAttributeName","employeeid");
+//map.put("identityAttributeValue",id);
+//return map;
+
+//Corelation by fullname
+Map map = new HashMap();
+String fullname = account.getStringAttribute("fullname");
+fullname=fullname.toLowerCase().replace(" ",".");
+map.put ("identityName",fullname);
+return map;]]></Source>
+</Rule>

@@ -1,0 +1,210 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="Detect OOTB JDBC Drivers">
+  <Description>
+A rule to detect if an IdentityIQ installation is still running the factory 
+default JDBC drivers.  It also checks for certain JDBC driver versions with
+known errata.  If any of these JDBC driver versions are found an error 
+message is presented back to the user.  This is both logged and returned
+as a string to the caller so it can be run via the user interface.
+
+Note: SailPoint no longer ships DB2 database drivers so they are not checked. 
+  </Description>
+  <Signature returnType="Identity">
+    <Inputs>
+      <Argument name="context">
+        <Description>A sailpoint.api.SailPointContext object that can be used to access the database.</Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source><![CDATA[
+    
+import java.io.*;
+import java.util.*;
+import java.lang.reflect.*;
+import java.util.jar.Manifest;
+import java.util.jar.Attributes;
+import org.apache.commons.io.*;
+import org.apache.commons.io.FileUtils;
+  
+import sailpoint.object.Application;
+import sailpoint.object.ResourceObject;
+import sailpoint.object.Rule;
+import sailpoint.object.TaskResult;
+import sailpoint.connector.Connector;
+import sailpoint.api.Aggregator;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
+// Force ourselves into INFO level logging.
+Logger log = Logger.getLogger("sailpoint.rule.Detect-OOTB-JDBC-Drivers");
+log.setLevel(Level.INFO);
+
+String returnString = "";
+
+// Build a small in-memory table of the OOTB and Known-Bad versions.
+// Each JDBC driver has a version that we know we shipped out of the box.
+// Each JDBC driver has a List of versions that are known to be bad.
+// The values of the hash maps are in "fileSize-md5Sum" format.
+// This way we can compare both size and md5 for a proper match.  
+HashMap knownBadVersions = new HashMap();
+HashMap ootbVersions = new HashMap();
+ootbVersions.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", "583186-002761a1a50ae52dcbc8d1fe713d1965");
+ootbVersions.put("com.mysql.jdbc.Driver",                        "848401-24a6d6cab39d9fd970e0ee00bd2f9e7c");
+ootbVersions.put("oracle.jdbc.driver.OracleDriver",              "1536554-df40bba7fa52ac4c77b0c2652172fb71");
+
+// Put the known-bad versions in here.  Each JDBC driver may have known-buggy
+// or bad versions that were found as a result of support tickets.
+// TODO: Add more known bad JDBC driver versions here. 
+ArrayList badOraVers = new ArrayList();
+ArrayList badSqlVers = new ArrayList();
+ArrayList badMysVers = new ArrayList();
+badOraVers.add("2111220-fc074b0027bc6f77a67a4c4aac2f490d"); // Bad Oracle driver found at NT in May 2013.
+
+
+knownBadVersions.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", badSqlVers);
+knownBadVersions.put("com.mysql.jdbc.Driver",                        badMysVers);
+knownBadVersions.put("oracle.jdbc.driver.OracleDriver",              badOraVers);
+
+ArrayList driverClasses = new ArrayList();
+driverClasses.add("com.mysql.jdbc.Driver");
+driverClasses.add("oracle.jdbc.driver.OracleDriver");
+driverClasses.add("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+// driverClasses.add("com.microsoft.sqlserver.jdbc.SQLServerDriverZZZ"); // was test case of bad class.
+
+for (String driverClass : driverClasses) {
+
+   System.out.println();
+   log.info("Examining JDBC driver: " + driverClass);
+   boolean foundOOTB = false;
+   boolean foundKnownBad = false;
+   
+   try {
+   
+   Class clazz  = Class.forName(driverClass);       
+       
+   String className = clazz.getSimpleName() + ".class";
+   String classPath = clazz.getResource(className).toString();
+   
+   if (!classPath.startsWith("jar")) {
+      // Class not from JAR file.  It must be comeing from elsewhere.  Punt.
+      log.warn("Class not from a jar: " + className);
+      continue; // go to the next iteration of the for() loop.
+   }
+   
+   System.out.println("classPath: " + classPath);
+   // classPath looks like: jar:file:/Users/adam.hampton/apache-tomcat-6.0.36/webapps/iiq61lab/WEB-INF/lib/sqljdbc-1.2.jar!/com/microsoft/sqlserver/jdbc/SQLServerDriver.class
+   String pathLhs = classPath.split("!")[0];
+   String pathRhs = pathLhs.split(":file:")[1];
+   String jarPath = pathRhs;
+   log.info("jarPath: " + jarPath);
+   
+   // Read the size and calculate the MD5 sum for the file.
+   File jarFile = new File(jarPath);
+   long fileSize = jarFile.length();
+   
+   import org.apache.commons.io.IOUtils;
+   FileInputStream fis = new FileInputStream(jarFile);
+   String md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(IOUtils.toByteArray(fis));  
+   md5 = md5.toLowerCase();
+            
+   log.info("file: " + jarFile);
+   log.info("size: " + fileSize + " md5: " + md5);
+   
+   // Check for comparison with OOTB versions of the JDBC driver.
+   String keyString = "" + fileSize + "-" + md5;
+   
+   String ootbVersion = ootbVersions.get(driverClass);
+   if ((null != ootbVersion) && (keyString.equals(ootbVersion))) {
+      // We have an OOTB version of the JDBC driver that needs to be replaced.
+      String msg = "WARNING: demonstration version found for " + driverClass +
+                   " please upgrade/replace JDBC driver. \n" + 
+                   "Driver file path: " + jarPath + " \n" + 
+                   "Demo driver size and md5 hash: " + keyString;
+      System.out.println(msg);
+      log.warn(msg);
+      returnString += msg + "\n";
+      foundOOTB = true;
+   }
+   
+   // Check for comparison with known bad versions of the JDBC driver.
+   List knownBads = knownBadVersions.get(driverClass);
+   if (null != knownBads) {
+      if (knownBads.contains(keyString)) {
+         // We have known bad version of the JDBC driver that needs to be replaced.
+         String msg = "WARNING: known faulty found for " + driverClass +
+                      " please upgrade/replace JDBC driver. \n" + 
+                      "Driver file path: " + jarPath + " \n" +
+                      "Known faulty size and md5 hash: " + keyString;
+         System.out.println(msg);
+         log.warn(msg);
+         returnString += msg + "\n";   
+         foundKnownBad = true;    
+      }   
+   }
+   
+   // In this case we have some upgraded .jar file in place.
+   if ((!foundOOTB) && (!foundKnownBad)) {
+     String msg = "Upgraded driver in place for " + driverClass + 
+                  "\n   md5 hash: " + keyString;
+     returnString += msg + "\n";           
+   }
+   
+   /* 
+   
+   Dormant / commented out code to dig into a Manifest file.  There is some
+   neat information in the manifest files but it turns out to be useless and
+   non deterministic for determing JDBC driver versions.
+       
+   // A class file might have different cases of manifest file name.  Sloppy, I know.
+   // We can thank the older versions of SQL Server's JDBC drivers for this mess.
+   List manifestsList = new ArrayList();
+   String classBase = classPath.substring(0, classPath.lastIndexOf("!") + 1);
+   manifestsList.add(classBase + "/META-INF/MANIFEST.MF");
+   manifestsList.add(classBase + "/META-INF/manifest.mf");
+   manifestsList.add(classBase + "/META-INF/Manifest.MF");
+   manifestsList.add(classBase + "/META-INF/Manifest.mf");
+
+   Manifest manifest = null;
+   Attributes attr = null;
+
+   // Search for the manfiest file.
+   for (String manifestPath : manifestsList) {
+      try {        
+         manifest = new Manifest(new URL(manifestPath).openStream());
+      } catch (java.io.FileNotFoundException ex) {
+         // Fall through and try the next manifest path.
+         // System.out.println("Manifest not found: " + manifestPath);
+      }
+   }
+
+   // If we found the manifest file, then do somehting useful with it.
+   if (null != manifest) {
+   
+      attr = manifest.getMainAttributes();
+      
+      for (Object key : attr.keySet()) {
+         String val = attr.getValue(key);
+         if (null != val) val = val.trim();
+         // System.out.println(" - manifest key: [" + key.toString() + "] = ["+ val + "]");
+      }        
+            
+  
+   } else {
+     System.out.println("No 'MANFIEST.MF' file found for: " + driverClass);
+   } 
+   
+   */
+                
+   } catch (ClassNotFoundException e) {
+      log.info("No JDBC driver found for: " + driverClass);
+   }
+
+}
+        
+return returnString;
+// ---
+    
+  ]]></Source>
+</Rule>

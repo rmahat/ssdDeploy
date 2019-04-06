@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="DexpertsJavaEllipse">
+  <Source><![CDATA[
+    //Testing the logger
+  	import sailpoint.object.Identity;
+    import java.util.list;
+    import java.util.ArrayList;
+    import java.util.HashMap;
+    import java.util.Map;
+    import sailpoint.api.SailpointContext;
+  
+    Identity iden =context.getObjectByName(Identity.class,"bill.gates");
+    String name = iden.getName();
+    String firstname = iden.getStringAttribute("firstname");
+    String lastname = iden.getStringAttribute("lastname");
+    String info= "name= "+firstname+" "+ lastname;
+      
+    return info;
+    
+  ]]></Source>
+</Rule>

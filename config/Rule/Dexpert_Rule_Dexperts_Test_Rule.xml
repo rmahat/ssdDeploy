@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="Dexperts Test Rule">
+  <Signature returnType="Map">
+    <Inputs>
+      <Argument name="log">
+        <Description>  
+      The log object associated with the SailPointContext.  
+      </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>  
+        A sailpoint.api.SailPointContext object that can be used to query the database if necessary.  
+      </Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source><![CDATA[
+    //Testing the logger
+  import sailpoint.object.*;
+  	import org.apache.log4j.Logger;
+    //Logger logger = Logger.getLogger("DExpertslog");
+    //logger.info("First Log by Rupak");
+      // return "Hello World From Rule";
+  Identity ident = context.getObjectByName(Identity.class,"dorna.mainali5");
+  String test=ident.getStringAttribute("displayName");
+  return test;
+    
+  ]]></Source>
+</Rule>

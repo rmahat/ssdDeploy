@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE TaskDefinition PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<TaskDefinition executor="sailpoint.services.standard.task.genericImport.GenericImportTaskExecutor" name="Generic Importer" progressInterval="1" progressMode="String" subType="task_item_type_generic" template="true" type="Generic">
+  <Description>
+		Generic Import Task
+	</Description>
+  <Signature>
+    <Inputs>
+      <Argument helpKey="Supported classes for the generic import may include: TextFileImport, JDBCImport and ExcelSAXImport" name="genericImportDriverClass" required="true" type="string">
+        <Description>
+					Supported classes for the generic import can include:
+						TextFileImport,JDBCImport,ExcelSAXImport
+						
+					Any third party import iterators can be specified here as well with
+					the classes Canonical Name.
+				</Description>
+        <Prompt>Generic: Import Driver Class</Prompt>
+      </Argument>
+      <Argument helpKey="List of fields in CSV format seperated by a comma to group rows" name="importGroupBy" type="string">
+        <Prompt>Generic: Group by</Prompt>
+      </Argument>
+      <Argument helpKey="When specifying the groupBy function, list the fields in CSV format which represent multi valued fields" name="importMultiValueFields" type="string">
+        <Prompt>Generic: MV Field</Prompt>
+      </Argument>
+      <Argument helpKey="Initialise rule which is executed once and before any rows are read in" name="importInitRule" type="Rule">
+        <Prompt>Generic: Init Rule name</Prompt>
+      </Argument>
+      <Argument helpKey="Transform rule in which the schema of the row can be manipulated before being processed by the row rule" name="importTransformRule" type="Rule">
+        <Prompt>Generic: Transform Rule name</Prompt>
+      </Argument>
+      <Argument helpKey="Row rules handle the transform of row data to perform an action" name="importRowRule" type="Rule">
+        <Prompt>Generic: Row rule name</Prompt>
+      </Argument>
+      <Argument helpKey="Finalisation rules run at the end of the import and can be used for clean up type events" name="importFinalizeRule" type="Rule">
+        <Prompt>Generic: Finalize Rule name</Prompt>
+      </Argument>
+      <Argument helpKey="Override the default logger used" name="importLoggerName" type="string">
+        <Prompt>Generic: Logger to use instead of default</Prompt>
+      </Argument>
+      <Argument helpKey="Override the default logger level." name="importLoggerLevel" type="string">
+        <Prompt>Generic: Use log level for custom loger</Prompt>
+      </Argument>
+      <Argument helpKey="Specify an overide of the header.  This is a CSV list in the format which changes the default UID for the column one of your choosing." name="importManualHeader" type="string">
+        <Description>Transform header using the connectors 
+				using 1</Description>
+        <Prompt>Generic: Transform iterators header</Prompt>
+      </Argument>
+      <Argument helpKey="JDBC Driver class name, such as com.mysql.jdbc.Driver for MySQL" name="jdbc_driverClass" type="string">
+        <Prompt>JDBC: Driver Class</Prompt>
+      </Argument>
+      <Argument helpKey="JDBC connection url for the chosen driver class and target database." name="jdbc_url" type="string">
+        <Prompt>JDBC: URL</Prompt>
+      </Argument>
+      <Argument helpKey="JDBC Database username." name="jdbc_user" type="string">
+        <Prompt>JDBC: Username</Prompt>
+      </Argument>
+      <Argument helpKey="JDBC Password, this value can be encrypted." name="jdbc_password" type="string">
+        <Prompt>JDBC: Password</Prompt>
+      </Argument>
+      <Argument helpKey="SQL query used to retrieve data from the target database" name="jdbc_sqlQuery" type="string">
+        <Prompt>JDBC: SQL Query</Prompt>
+      </Argument>
+      <Argument helpKey="Delimited text filename (full path required)" name="text_fileName" type="string">
+        <Prompt>File: File name</Prompt>
+      </Argument>
+      <Argument helpKey="Delimiter used in the text file, defaults to a comma if not specified" name="text_fileDelimiter" type="string">
+        <Prompt>File: Delimiter</Prompt>
+      </Argument>
+      <Argument helpKey="Specifies the first line is a header, the iterator will use this as schema information" name="text_hasHeader" type="boolean">
+        <Prompt>File: File has a header</Prompt>
+      </Argument>
+      <Argument helpKey="Remark token, the iterator will ignore any lines pre-fixed with the remark token" name="text_remarkToken" type="string">
+        <Prompt>File: Import remark token</Prompt>
+      </Argument>
+      <Argument helpKey="Java file encoding type" name="text_fileEncoding" type="string">
+        <Prompt>File: Encoding</Prompt>
+      </Argument>
+      <Argument helpKey="Full path to the Excel xslx file" name="excel_filename" type="string">
+        <Prompt>Excel: The excel full path and file name</Prompt>
+      </Argument>
+      <Argument helpKey="Indicate the excel worksheet has a header row" name="excel_hasHeader" type="boolean">
+        <Prompt>Excel: Does the worksheet have a header row</Prompt>
+      </Argument>
+      <Argument helpKey="Tell the iterator which row number has the header details if a header row is indicated" name="excel_headerRow" type="string">
+        <Prompt>Excel: Header row number</Prompt>
+      </Argument>
+      <Argument helpKey="Specify the Excel Worksheet name" name="excel_sheetName" type="string">
+        <Prompt>Excel: Sheet name</Prompt>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="processed" type="string">
+        <Prompt>Total processed:</Prompt>
+      </Argument>
+    </Returns>
+  </Signature>
+</TaskDefinition>

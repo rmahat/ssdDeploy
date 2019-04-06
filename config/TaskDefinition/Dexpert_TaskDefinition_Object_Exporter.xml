@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE TaskDefinition PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<TaskDefinition name="Object Exporter" resultAction="Delete" subType="task_item_type_generic" type="Generic">
+  <Attributes>
+    <Map>
+      <entry key="TaskDefinition.runLengthAverage" value="5"/>
+      <entry key="TaskDefinition.runLengthTotal" value="5"/>
+      <entry key="TaskDefinition.runs" value="1"/>
+      <entry key="TaskSchedule.host"/>
+      <entry key="addCData" value="true"/>
+      <entry key="basePath" value="C:\Users\Rupak\Downloads\VersionUpgrade\objectExporter"/>
+      <entry key="classNames" value="default"/>
+      <entry key="namingFormat" value="Dexpert_$Class$_$Name$"/>
+      <entry key="removeIDs" value="true"/>
+      <entry key="stripMetadata" value="false"/>
+      <entry key="taskCompletionEmailNotify" value="Disabled"/>
+      <entry key="taskCompletionEmailRecipients"/>
+      <entry key="taskCompletionEmailTemplate"/>
+    </Map>
+  </Attributes>
+  <Description>Export XML of IIQ objects.</Description>
+  <Owner>
+    <Reference class="sailpoint.object.Identity" name="spadmin"/>
+  </Owner>
+  <Parent>
+    <Reference class="sailpoint.object.TaskDefinition" name="XML Object Exporter"/>
+  </Parent>
+</TaskDefinition>

@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<DashboardContent name="Inbox" regionSize="0" source="dashboard/contentInbox.xhtml" title="dash_title_inbox" type="My">
+  <Description>dash_description_inbox</Description>
+</DashboardContent>

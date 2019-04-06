@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Form name="SST UT Report Form">
+  <Attributes>
+    <Map>
+      <entry key="pageTitle" value="SST Unit Test Reports"/>
+      <entry key="subtitle" value="Click a link below to view report details.  Click Run Tests to re-run all tests and generate a new report.  New reports can take several seconds to generate.  If you don't see the new report, simply return to the dashboard, wait a bit, perhaps refill your coffee, then click the View Unit Test Reports link again.  "/>
+    </Map>
+  </Attributes>
+  <Button action="next" label="Run Tests"/>
+  <Button action="back" label="Return to Dashboard"/>
+</Form>

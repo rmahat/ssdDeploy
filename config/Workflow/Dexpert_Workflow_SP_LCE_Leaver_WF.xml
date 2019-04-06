@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" name="SP LCE Leaver WF" type="IdentityLifecycle">
+  <Variable input="true" name="trigger">
+    <Description>The IdentityTrigger</Description>
+  </Variable>
+  <Variable input="true" name="event">
+    <Description>The IdentityChangeEvent</Description>
+  </Variable>
+  <Variable initializer="string:false" name="trace">
+    <Description>
+	      Used for debugging this workflow and when set to true trace
+	      will be sent to stdout.
+	    </Description>
+  </Variable>
+  <Variable input="true" name="identityName">
+    <Description>The name of the identity.</Description>
+  </Variable>
+  <Variable initializer="string:SSF Leaver" name="flow">
+    <Description>The name of the identity.</Description>
+  </Variable>
+  <Variable initializer="string:LCM" name="source">
+    <Description>The name of the identity.</Description>
+  </Variable>
+  <Variable initializer="script:resolveDisplayName(identityName)" input="true" name="identityDisplayName">
+    <Description>
+	      The displayName of the identity being updated.
+	      Query for this using a projection query and fall back to the name.
+	    </Description>
+  </Variable>
+  <Variable initializer="false" name="foregroundProvisioning"/>
+  <Variable initializer="script:getLeaverProvSuccessEmailToRule(context,workflow)" name="successTo"/>
+  <Variable initializer="script:getLeaverProvFailureEmailToRule(context,workflow)" name="failureTo"/>
+  <Variable initializer="script:getLeaverProvSuccessEmailTemplateRule(context,workflow)" name="successTemplate"/>
+  <Variable initializer="script:getLeaverProvFailureEmailTemplateRule(context,workflow)" name="failureTemplate"/>
+  <Variable initializer="script:getLeaverApprovedEmailToRule(context,workflow)" name="approvedTo"/>
+  <Variable initializer="script:getLeaverRejectedEmailToRule(context,workflow)" name="rejectedTo"/>
+  <Variable initializer="script:getLeaverApprovedEmailTemplateRule(context,workflow)" name="approvedTemplate"/>
+  <Variable initializer="script:getLeaverRejectedEmailToRule(context,workflow)" name="rejectedTemplate"/>
+  <Variable initializer="false" name="updateStandardPostProvEmails"/>
+  <Variable initializer="false" name="updateStandardPostApproveEmails"/>
+  <Variable editable="true" name="requestType">
+    <Description>The Decider determining the Use Case</Description>
+  </Variable>
+  <Variable name="plan"/>
+  <Variable name="project"/>
+  <Variable name="monitorId"/>
+  <Variable name="emailArgList">
+    <Description>
+	  		List of hash maps of all necessary emails that need to be sent out. 
+	  	</Description>
+  </Variable>
+  <Variable name="spExtAttrs"/>
+  <Variable name="identityModel"/>
+  <Description>
+		
+		This is the deployment framework's standard LCE Leaver WF 
+		</Description>
+  <RuleLibraries>
+    <Reference class="sailpoint.object.Rule" name="SP Provisioning Rules Library"/>
+    <Reference class="sailpoint.object.Rule" name="SP Leaver Rules Library"/>
+    <Reference class="sailpoint.object.Rule" name="SP Role Assigment Rule Library"/>
+    <Reference class="sailpoint.object.Rule" name="SPCONF Leaver Rules Library"/>
+    <Reference class="sailpoint.object.Rule" name="SPCONF Common Rules Library"/>
+  </RuleLibraries>
+  <Step icon="Start" name="Start" posX="2" posY="135">
+    <Transition to="Get Request Type"/>
+  </Step>
+  <Step name="Get Request Type" resultVariable="requestType">
+    <Script>
+      <Source><![CDATA[
+	      	return getLeaverRequestTypeRule(context, workflow);
+	      ]]></Source>
+    </Script>
+    <Transition to="Before Plan"/>
+  </Step>
+  <Step name="Before Plan">
+    <Script>
+      <Source><![CDATA[
+	      	leaverBeforePlanRule(context, workflow);
+	      ]]></Source>
+    </Script>
+    <Transition to="Build Plan"/>
+  </Step>
+  <Step name="Build Plan" resultVariable="plan">
+    <Script>
+      <Source><![CDATA[
+	  			import sailpoint.object.*;
+	  			import java.util.*;
+	  			ProvisioningPlan plan = getDynamicLeaverPlan(context, identityName, workflow);
+	  			return plan;
+	  		]]></Source>
+    </Script>
+    <Transition to="No Request" when="plan == null || plan.getAccountRequests() == null || plan.getAccountRequests().size() &lt; 1"/>
+    <Transition to="Before Provision"/>
+  </Step>
+  <Step name="Before Provision">
+    <Script>
+      <Source><![CDATA[
+	      	leaverBeforeProvisionRule(context, workflow);
+	      ]]></Source>
+    </Script>
+    <Transition to="No Request" when="plan == null || plan.getAccountRequests() == null || plan.getAccountRequests().size() &lt; 1"/>
+    <Transition to="Process Plan"/>
+  </Step>
+  <Step icon="Task" name="Process Plan">
+    <Arg name="fallbackApprover" value="spadmin"/>
+    <Arg name="flow" value="ref:flow"/>
+    <Arg name="identityName" value="ref:identityName"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="spExtAttrs" value="ref:spExtAttrs"/>
+    <Arg name="identityDisplayName" value="ref:identityDisplayName"/>
+    <Arg name="launcher" value="ref:launcher"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Arg name="trace" value="ref:trace"/>
+    <Arg name="emailArgList" value="ref:emailArgList"/>
+    <Arg name="requestType" value="ref:requestType"/>
+    <Arg name="requestor" value="ref:requestor"/>
+    <Arg name="successTo" value="ref:successTo"/>
+    <Arg name="failureTo" value="ref:failureTo"/>
+    <Arg name="successTemplate" value="ref:successTemplate"/>
+    <Arg name="failureTemplate" value="ref:failureTemplate"/>
+    <Arg name="approvedTo" value="ref:successTo"/>
+    <Arg name="rejectedTo" value="ref:failureTo"/>
+    <Arg name="approvedTemplate" value="ref:approvedTemplate"/>
+    <Arg name="rejectedTemplate" value="ref:rejectedTemplate"/>
+    <Arg name="workItemPriority" value="High"/>
+    <Arg name="updateStandardPostProvEmails" value="ref:updateStandardPostProvEmails"/>
+    <Arg name="updateStandardPostApproveEmails" value="ref:updateStandardPostApproveEmails"/>
+    <Arg name="foregroundProvisioning" value="ref:foregroundProvisioning"/>
+    <Return name="emailArgList" to="emailArgList"/>
+    <Return name="approvalSet" to="approvalSet"/>
+    <Return name="project" to="project"/>
+    <Return name="identityModel" to="identityModel"/>
+    <Return name="spExtAttrs" to="spExtAttrs"/>
+    <WorkflowRef>
+      <Reference class="sailpoint.object.Workflow" name="SP Provision Processor Sub"/>
+    </WorkflowRef>
+    <Transition to="After Provision"/>
+  </Step>
+  <Step name="After Provision">
+    <Script>
+      <Source><![CDATA[
+	      	leaverAfterProvisionRule(context, workflow);
+	      ]]></Source>
+    </Script>
+    <Transition to="Send Emails"/>
+  </Step>
+  <Step name="No Request">
+    <Script>
+      <Source><![CDATA[
+	  			leaverNoRequestRule(context, workflow);
+	  		]]></Source>
+    </Script>
+    <Transition to="Send Emails"/>
+  </Step>
+  <Step name="Send Emails">
+    <Arg name="emailArgList" value="ref:emailArgList"/>
+    <Description>
+	      Call the standard subprocess that will handle the built-in
+	      owner, manager and security officer approval schemes.
+	    </Description>
+    <WorkflowRef>
+      <Reference class="sailpoint.object.Workflow" name="SP Dynamic Send Emails Sub"/>
+    </WorkflowRef>
+    <Transition to="Get Schedule Sunset"/>
+  </Step>
+  <Step name="Get Schedule Sunset" resultVariable="scheduleSunset">
+    <Script>
+      <Source><![CDATA[
+	      	getScheduleSunset(workflow);
+	      ]]></Source>
+    </Script>
+    <Transition to="Schedule Sunset" when="scheduleSunset"/>
+    <Transition to="Stop"/>
+  </Step>
+  <Step action="call:scheduleWorkflowEvent" name="Schedule Sunset">
+    <Arg name="requestName">
+      <Script>
+        <Source><![CDATA[
+	         return "SP Leaver Sunset - " + identityName;
+	        ]]></Source>
+      </Script>
+    </Arg>
+    <Arg name="scheduleDate">
+      <Script>
+        <Source><![CDATA[
+	            return getSunsetDate(context.getObjectByName(Workflow.class, workflow));
+	        ]]></Source>
+      </Script>
+    </Arg>
+    <Arg name="identityName" value="ref:identityName"/>
+    <Arg name="source" value="Leaver"/>
+    <Arg name="requester" value="ref:requester"/>
+    <Arg name="launcher" value="ref:launcher"/>
+    <Arg name="trigger" value="ref:trigger"/>
+    <Arg name="event" value="ref:event"/>
+    <Arg name="workflow" value="SP Cust Sunset WF"/>
+    <Transition to="Stop"/>
+  </Step>
+  <Step icon="Stop" name="Stop" posX="960" posY="17"/>
+</Workflow>

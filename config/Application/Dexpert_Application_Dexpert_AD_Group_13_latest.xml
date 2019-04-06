@@ -1,0 +1,490 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Application PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Application connector="sailpoint.connector.ADLDAPConnector" featuresString="PROVISIONING, SYNC_PROVISIONING, AUTHENTICATE, MANAGER_LOOKUP, SEARCH, UNSTRUCTURED_TARGETS, UNLOCK, ENABLE, PASSWORD, CURRENT_PASSWORD" icon="directory1Icon" name="Dexpert AD Group 13 latest" profileClass="" type="Active Directory - Direct">
+  <Attributes>
+    <Map>
+      <entry key="IQServiceHost" value="192.168.1.150"/>
+      <entry key="IQServicePort" value="5050"/>
+      <entry key="acctAggregationEnd">
+        <value>
+          <Date>1547705644480</Date>
+        </value>
+      </entry>
+      <entry key="acctAggregationStart">
+        <value>
+          <Date>1547705644336</Date>
+        </value>
+      </entry>
+      <entry key="afterProvisioningRule"/>
+      <entry key="allowAutoPartitioning">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="authSearchAttributes">
+        <value>
+          <List>
+            <String>distinguishedName</String>
+            <String>sAMAccountName</String>
+            <String>uid</String>
+            <String>mail</String>
+          </List>
+        </value>
+      </entry>
+      <entry key="beforeProvisioningRule"/>
+      <entry key="cacheRemoteObjectPort" value="40002"/>
+      <entry key="cacheRmiPort" value="40001"/>
+      <entry key="compositeDefinition"/>
+      <entry key="deletedObjectsContainer" value="CN=Deleted Objects,DOMAIN"/>
+      <entry key="deltaIterationMode" value="DEFAULT"/>
+      <entry key="disableComputePreloading">
+        <value>
+          <Boolean>true</Boolean>
+        </value>
+      </entry>
+      <entry key="disableFspAggregation">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="domainSettings">
+        <value>
+          <List>
+            <Map>
+              <entry key="authorizationType" value="simple"/>
+              <entry key="domainDN" value="DC=ittaster,DC=local"/>
+              <entry key="domainIterateSearchFilter"/>
+              <entry key="domainNetBiosName" value="ittaster"/>
+              <entry key="forestName" value="defaultForest"/>
+              <entry key="password" value="1:Xmz/nRwk9tyUczcJrwNH1w=="/>
+              <entry key="port" value="389"/>
+              <entry key="servers">
+                <value>
+                  <List>
+                    <String>192.168.1.150</String>
+                  </List>
+                </value>
+              </entry>
+              <entry key="useSSL">
+                <value>
+                  <Boolean/>
+                </value>
+              </entry>
+              <entry key="user" value="ittaster\administrator"/>
+            </Map>
+          </List>
+        </value>
+      </entry>
+      <entry key="enableCache">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="exchangeversion" value="DEFAULT"/>
+      <entry key="forestSettings">
+        <value>
+          <List>
+            <Map>
+              <entry key="authorizationType" value="simple"/>
+              <entry key="forestName" value="defaultForest"/>
+              <entry key="gcServer" value="192.168.1.150:3268"/>
+              <entry key="manageAllDomains">
+                <value>
+                  <Boolean/>
+                </value>
+              </entry>
+              <entry key="password" value="1:Xmz/nRwk9tyUczcJrwNH1w=="/>
+              <entry key="useGroupMembershipPreloading"/>
+              <entry key="useSSL">
+                <value>
+                  <Boolean/>
+                </value>
+              </entry>
+              <entry key="user" value="ittaster\administrator"/>
+            </Map>
+          </List>
+        </value>
+      </entry>
+      <entry key="lyncAttributes" value="RegistrarPool,SipAddressType,SipAddress,SipDomain,msRTCSIP-UserEnabled"/>
+      <entry key="manageLync">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="manageRecycleBin">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="nativeChangeDetectionAttributeScope" value="entitlements"/>
+      <entry key="nativeChangeDetectionAttributes"/>
+      <entry key="nativeChangeDetectionEnabled">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="nativeChangeDetectionOperations"/>
+      <entry key="pageSize" value="100"/>
+      <entry key="searchDNs">
+        <value>
+          <List>
+            <Map>
+              <entry key="groupMemberFilterString"/>
+              <entry key="groupMembershipSearchDN"/>
+              <entry key="iterateSearchFilter"/>
+              <entry key="primaryGroupSearchDN"/>
+              <entry key="searchDN" value="OU=Dexpert,DC=ittaster,DC=local"/>
+              <entry key="searchScope" value="SUBTREE"/>
+            </Map>
+          </List>
+        </value>
+      </entry>
+      <entry key="sysDescriptions">
+        <value>
+          <Map>
+            <entry key="en_US"/>
+          </Map>
+        </value>
+      </entry>
+      <entry key="templateApplication" value="Active Directory Template"/>
+      <entry key="useSSL" value="false"/>
+    </Map>
+  </Attributes>
+  <ManagedAttributeCustomizationRule>
+    <Reference class="sailpoint.object.Rule" name="entitle own"/>
+  </ManagedAttributeCustomizationRule>
+  <Owner>
+    <Reference class="sailpoint.object.Identity" name="spadmin"/>
+  </Owner>
+  <ProvisioningForms>
+    <Form name="AD AutoFill Rupak" objectType="account" type="Create">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="AD AutoFill Rupak"/>
+        </Map>
+      </Attributes>
+      <Section label="Account" name="Account">
+        <Field displayName="con_prov_policy_ad_distinguishedName" helpKey="help_con_prov_policy_ad_distinguishedName" name="distinguishedName" required="true" reviewRequired="true" section="Account" type="string">
+          <Script>
+            <Source><![CDATA[String name=identity.getName();
+String dn="CN="+name+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+return dn;]]></Source>
+          </Script>
+        </Field>
+        <Field displayName="con_prov_policy_ad_sAMAccountName" helpKey="help_con_prov_policy_ad_sAMAccountName" name="sAMAccountName" required="true" reviewRequired="true" section="Account" type="string">
+          <RuleRef>
+            <Reference class="sailpoint.object.Rule" name="AD_FieldValue_Create_SamAccount"/>
+          </RuleRef>
+        </Field>
+        <Field displayName="con_prov_policy_ad_password" helpKey="help_con_prov_policy_ad_password" name="password" required="true" reviewRequired="true" section="Account" type="secret">
+          <Script>
+            <Source><![CDATA[return "nepal123!";]]></Source>
+          </Script>
+        </Field>
+        <Field displayName="con_prov_policy_ad_pwdLastSet" helpKey="help_con_prov_policy_ad_pwdLastSet" name="pwdLastSet" reviewRequired="true" section="Account" type="boolean">
+          <Script>
+            <Source><![CDATA[return false;]]></Source>
+          </Script>
+        </Field>
+      </Section>
+      <Section label="General" name="General">
+        <Field displayName="con_prov_policy_ad_givenName" helpKey="help_con_prov_policy_ad_givenName" name="givenName" reviewRequired="true" section="General" type="string">
+          <RuleRef>
+            <Reference class="sailpoint.object.Rule" name="First name creation"/>
+          </RuleRef>
+        </Field>
+        <Field displayName="con_prov_policy_ad_sn" helpKey="help_con_prov_policy_ad_sn" name="sn" reviewRequired="true" section="General" type="string">
+          <RuleRef>
+            <Reference class="sailpoint.object.Rule" name="lastname"/>
+          </RuleRef>
+        </Field>
+      </Section>
+    </Form>
+    <Form name="Create Group" objectType="group" type="Create">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="Create Group"/>
+        </Map>
+      </Attributes>
+      <Section>
+        <Field displayName="con_prov_policy_ad_distinguishedName_group" helpKey="help_con_prov_policy_ad_group_distinguishedName" name="distinguishedName" required="true" type="string"/>
+        <Field displayName="con_prov_policy_ad_sAMAccountName" helpKey="help_con_prov_policy_ad_group_sAMAccountName" name="sAMAccountName" required="true" type="string"/>
+      </Section>
+    </Form>
+    <Form name="Update Group" objectType="group" type="Update">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="Update Group"/>
+        </Map>
+      </Attributes>
+      <Section>
+        <Field displayName="con_prov_policy_ad_GroupType" helpKey="help_con_prov_policy_ad_GroupType" name="GroupType" reviewRequired="true" type="string" value="Security">
+          <AllowedValuesDefinition>
+            <Value>
+              <List>
+                <String>Security</String>
+                <String>Distribution</String>
+              </List>
+            </Value>
+          </AllowedValuesDefinition>
+        </Field>
+        <Field displayName="con_prov_policy_ad_GroupScope" helpKey="help_con_prov_policy_ad_GroupScope" name="GroupScope" reviewRequired="true" type="string" value="Global">
+          <AllowedValuesDefinition>
+            <Value>
+              <List>
+                <String>Domain local</String>
+                <String>Global</String>
+                <String>Universal</String>
+              </List>
+            </Value>
+          </AllowedValuesDefinition>
+        </Field>
+        <Field displayName="con_prov_policy_ad_description" helpKey="help_con_prov_policy_ad_group_description" name="description" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_ad_mailNickname" helpKey="help_con_prov_policy_ad_group_mailNickname" name="mailNickname" reviewRequired="true" type="string"/>
+      </Section>
+    </Form>
+  </ProvisioningForms>
+  <Schemas>
+    <Schema displayAttribute="sAMAccountName" identityAttribute="distinguishedName" instanceAttribute="" nativeObjectType="User" objectType="account">
+      <AttributeDefinition name="businessCategory" type="string">
+        <Description>business category</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="carLicense" type="string">
+        <Description>vehicle license or registration plate</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="cn" type="string">
+        <Description>common name(s) for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="departmentNumber" type="string">
+        <Description>identifies a department within an organization</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="description" type="string">
+        <Description>descriptive information</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="destinationIndicator" type="string">
+        <Description>destination indicator</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="displayName" type="string">
+        <Description>preferred name to be used when displaying entries</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="distinguishedName" type="string">
+        <Description>distinguished name for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="employeeNumber" type="string">
+        <Description>numerically identifies an employee within an organization</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="employeeType" type="string">
+        <Description>type of employment for a person</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="facsimileTelephoneNumber" type="string">
+        <Description>Facsimile (Fax) Telephone Number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="givenName" type="string">
+        <Description>first name(s) for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="homePhone" type="string">
+        <Description>home telephone number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="homePostalAddress" type="string">
+        <Description>home postal address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="initials" type="string">
+        <Description>initials of some or all of names, but not the surname(s).</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="internationalISDNNumber" type="string">
+        <Description>international ISDN number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="l" type="string">
+        <Description>city</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="mail" type="string">
+        <Description>RFC822 Mailbox</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="manager" type="string">
+        <Description>DN of manager</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="mobile" type="string">
+        <Description>mobile telephone number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="o" type="string">
+        <Description>organization this object belongs to</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="ou" type="string">
+        <Description>organizational unit this object belongs to</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="pager" type="string">
+        <Description>pager telephone number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="physicalDeliveryOfficeName" type="string">
+        <Description>Physical Delivery Office Name</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="postOfficeBox" type="string">
+        <Description>Post Office Box</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="postalAddress" type="string">
+        <Description>postal address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="postalCode" type="string">
+        <Description>postal code</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="preferredDeliveryMethod" type="string">
+        <Description>preferred delivery method</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="preferredLanguage" type="string">
+        <Description>preferred written or spoken language for a person</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="registeredAddress" type="string">
+        <Description>registered postal address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="roomNumber" type="string">
+        <Description>room number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="secretary" type="string">
+        <Description>DN of secretary</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="seeAlso" type="string">
+        <Description>DN of related object</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="sn" type="string">
+        <Description>last (family) name(s) for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="st" type="string">
+        <Description>state or province which this object resides in</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="streetAddress" type="string">
+        <Description>street address of this object</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="telephoneNumber" type="string">
+        <Description>Telephone Number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="teletexTerminalIdentifier" type="string">
+        <Description>Teletex Terminal Identifier</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="telexNumber" type="string">
+        <Description>Telex Number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="title" type="string">
+        <Description>title associated with the entity</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="uid" type="string">
+        <Description>user identifier</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="userPrincipalName" type="string">
+        <Description>user principal name</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="objectClass" type="string">
+        <Description>object classes of the entity</Description>
+      </AttributeDefinition>
+      <AttributeDefinition entitlement="true" managed="true" multi="true" name="memberOf" type="string">
+        <Description>Group Membership</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="objectSid" type="string">
+        <Description>Windows Security Identifier</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="objectguid" type="string">
+        <Description>Object globally unique identifier </Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="sAMAccountName" type="string">
+        <Description>sAMAccountName</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="primaryGroupID" type="string">
+        <Description>RID of users primary group</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="primaryGroupDN" type="string">
+        <Description>DN of users primary group</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="accountFlags" type="string">
+        <Description>List of the flags enabled on an account</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="department" type="string">
+        <Description>User's department</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="msNPCallingStationID" type="string">
+        <Description>CallingStationID</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="msRADIUSFramedRoute" type="string">
+        <Description>Static Routes for Dial-In connection</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msNPAllowDialin" type="string">
+        <Description>Is dial-in allowed</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msRADIUSCallbackNumber" type="string">
+        <Description>Callback Number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msRADIUSFramedIPAddress" type="string">
+        <Description>Define Static IP Address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="mailNickname" type="string">
+        <Description>Exchange Alias</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="homeMDB" type="string">
+        <Description>Exchange Database</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msExchHideFromAddressLists" type="string">
+        <Description>Hide from Exchange address lists</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msRTCSIP-UserEnabled" type="string">
+        <Description>User enabled for Skype for Business Server</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="SipAddress" type="string">
+        <Description>Skype for Business sipAddress</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="RegistrarPool" type="string">
+        <Description>Skype for Business Registrar pool</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="LyncPinSet" type="string">
+        <Description>Skype for Business user pin set status</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="LyncPinLockedOut" type="string">
+        <Description>Skype for Business user pin lock status</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msDS-PrincipalName" type="string">
+        <Description>Name of the entity in the format "NetBIOS domain name\sAMAccountName"</Description>
+      </AttributeDefinition>
+    </Schema>
+    <Schema displayAttribute="sAMAccountName" featuresString="PROVISIONING, GROUPS_HAVE_MEMBERS" hierarchyAttribute="memberOf" identityAttribute="distinguishedName" instanceAttribute="" nativeObjectType="Group" objectType="group">
+      <AttributeDefinition name="cn" type="string">
+        <Description>common name(s) for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="distinguishedName" type="string">
+        <Description>distinguished name for which the entity is known by</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="owner" type="string">
+        <Description>owner (of the object)</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="description" type="string">
+        <Description>descriptive information</Description>
+      </AttributeDefinition>
+      <AttributeDefinition entitlement="true" multi="true" name="memberOf" type="string">
+        <Description>Group Membership</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="objectSid" type="string">
+        <Description>Windows Security Identifier</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="objectguid" type="string">
+        <Description>Object globally unique identifier </Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="mailNickname" type="string">
+        <Description>Exchange Distribution Group Name</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="GroupType" type="string">
+        <Description>Group Type</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="GroupScope" type="string">
+        <Description>Group Scope</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="sAMAccountName" type="string">
+        <Description>sAMAccountName</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="msDS-PrincipalName" type="string">
+        <Description>Name of the entity in the format "NetBIOS domain name\sAMAccountName"</Description>
+      </AttributeDefinition>
+      <Attributes>
+        <Map>
+          <entry key="groupMemberAttribute" value="member"/>
+        </Map>
+      </Attributes>
+    </Schema>
+  </Schemas>
+  <ApplicationScorecard/>
+</Application>

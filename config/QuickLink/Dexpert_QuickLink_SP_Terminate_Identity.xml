@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE QuickLink PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<QuickLink action="workflow" category="Admin" messageKey="Terminate Identity" name="SP Terminate Identity" ordering="3">
+  <Attributes>
+    <Map>
+      <entry key="forceAllowOthers" value="true"/>
+      <entry key="hideAllowSelf" value="true"/>
+      <entry key="workflowName" value="SP LCM Terminate Identity WF"/>
+    </Map>
+  </Attributes>
+  <QuickLinkOptions allowOther="true">
+    <DynamicScopeRef>
+      <Reference class="sailpoint.object.DynamicScope" name="SP LCM Terminate Identity Scope"/>
+    </DynamicScopeRef>
+  </QuickLinkOptions>
+</QuickLink>

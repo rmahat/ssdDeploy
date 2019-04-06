@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<DashboardContent name="Policy Violation Status" regionSize="0" source="dashboard/contentPolicyViolations.xhtml" title="dash_title_policy_violation_status" type="My">
+  <Description>dash_description_policy_violation_status</Description>
+</DashboardContent>

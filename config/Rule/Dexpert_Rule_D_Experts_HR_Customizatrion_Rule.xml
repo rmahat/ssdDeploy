@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="D Experts HR Customizatrion Rule" type="ResourceObjectCustomization">
+  <Description>This rule is configured on the application and is called after the connector has build a ResourceObject from the native application data.
+
+Initially designed for non-rule based connectors to add SPPrivileged flag to an object, but could be used to do any transformations.</Description>
+  <Signature returnType="ResourceObject">
+    <Inputs>
+      <Argument name="log">
+        <Description>
+          The log object associated with the SailPointContext.
+        </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>
+          A sailpoint.api.SailPointContext object that can be used to query the database if necessary.
+        </Description>
+      </Argument>
+      <Argument name="object">
+        <Description>
+          The ResourceObject built by the connector.
+        </Description>
+      </Argument>
+      <Argument name="application">
+        <Description>
+          Application that references the connector.
+        </Description>
+      </Argument>
+      <Argument name="connector">
+        <Description>
+          The connector object.
+        </Description>
+      </Argument>
+      <Argument name="state">
+        <Description>
+          A Map containing state information.
+        </Description>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="resourceObject">
+        <Description>
+          The updated resource object.
+        </Description>
+      </Argument>
+    </Returns>
+  </Signature>
+  <Source><![CDATA[import org.apache.log4j.Logger;
+    Logger logger = Logger.getLogger("DExpertslog");
+    logger.info("Log from the Rule: Firstname="+object.getAttribute("firstname"));
+	String firstname =object.getAttribute("firstname");
+	String lastname = object.getAttribute("lastname");
+	
+	object.setAttribute("firstname",firstname.substring(0,1).toUpperCase()+firstname.substring(1).toLowerCase());
+	object.setAttribute("lastname",lastname.substring(0,1).toUpperCase()+lastname.substring(1).toLowerCase());
+       
+	  logger.info("Log from the Rule: Gender="+object.getAttribute("gender")); 
+	String shortFormGender=object.getAttribute("gender");
+	 if(shortFormGender.equals("f")){
+		 object.setAttribute("gender","female");
+	 }
+          if (shortFormGender.equals("m")){
+		 object.setAttribute("gender","male");
+	 }
+	 return object;]]></Source>
+</Rule>

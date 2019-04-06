@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" name="provisioningWithFormAD">
+  <Variable name="userName" output="true"/>
+  <Variable name="attributeManaged" output="true"/>
+  <Step icon="Start" name="Start" posX="28" posY="16">
+    <Transition to="Form"/>
+  </Step>
+  <Step icon="Stop" name="Stop" posX="707" posY="11"/>
+  <Step icon="Default" name="Form" posX="235" posY="15">
+    <Approval name="formForProvision" owner="spadmin" return="userName,attributeManaged" send="">
+      <Form name="formForProvision">
+        <Attributes>
+          <Map>
+            <entry key="pageTitle" value="formForProvision"/>
+          </Map>
+        </Attributes>
+        <Section name="General">
+          <Field displayName="User Name" name="userName" required="true" type="string"/>
+          <Field displayName="Attribute Managed" name="attributeManaged" required="true" type="string"/>
+        </Section>
+        <Button action="cancel" label="Cancel"/>
+        <Button action="next" label="Next"/>
+      </Form>
+    </Approval>
+    <Transition to="Provision"/>
+  </Step>
+  <Step icon="Default" name="Provision" posX="436" posY="14">
+    <Script>
+      <Source><![CDATA[import org.apache.log4j.Logger;
+import java.util.List;
+import java.util.ArrayList;
+import sailpoint.object.*;
+import sailpoint.object.ProvisioningPlan.*;
+import sailpoint.object.ProvisioningPlan.AccountRequest;
+import sailpoint.object.ProvisioningPlan.AttributeRequest;
+import sailpoint.api.Provisioner;
+
+System.out.println(userName);
+System.out.println(attributeManaged);
+  
+
+//Logger logger = Logger.getLogger("DExpertslog");
+
+
+Identity ident = context.getObjectByName(Identity.class,userName);
+
+String username = ident.getName();
+//String username = "dinesh.khanal";
+//logger.info("Test rule.....");
+ // logger.info("username "+username);
+//  logger.info("ident "+ident);
+// Creating the New ProvisioningPlan
+  ProvisioningPlan plan = new ProvisioningPlan();
+
+//plan
+plan.setIdentity(ident);
+ // logger.info("plan "+plan);
+//Provisining Plan Account Request
+AccountRequest  accountRequest = new AccountRequest();
+ //  logger.info("AcountReq test 0 ");
+System.out.println("AcountReq test 0");
+String dn="CN="+username+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+//String dn=cn + ",OU=USA,DC=messi,DC=local";
+  //   logger.info("dn "+dn);
+
+accountRequest.setApplication("Dexpert AD Group 13 latest");
+  accountRequest.setNativeIdentity(dn);
+  
+System.out.println("AcountReq test 1");
+
+//AD application Name for Requested Ac
+
+
+
+
+
+
+  //logger.info("aplication set");
+
+
+  // Create Operation
+//accountRequest.setOperation("sAMAccountName",ProvisioningPlan.AccountRequest.Operation.Set,username);
+accountRequest.add(new AttributeRequest("samAccountName",ProvisioningPlan.Operation.Set,username));
+  accountRequest.add(new AttributeRequest("password",ProvisioningPlan.Operation.Set,"nepal123!"));
+System.out.println("AcountReq test 2");
+  
+  
+//Add plan in accountRequest
+ 
+plan.add(accountRequest);
+
+ 
+
+// Adding default membership you can attribute request
+
+AttributeRequest attributeRequest = new AttributeRequest();
+System.out.println("AttributeReq test 3");
+
+
+attributeRequest.setName("memberOf");
+System.out.println("AttributeReq test 4");
+
+
+attributeRequest.setOperation(ProvisioningPlan.Operation.Add);
+System.out.println("AttributeReq test 5");
+String ManagedAttributesIT= "CN="+attributeManaged+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+attributeRequest.setValue(ManagedAttributesIT);
+System.out.println("AttributeReq test 6");
+List list =new ArrayList();
+System.out.println("List test 7");
+accountRequest.add(attributeRequest);
+System.out.println("AcountReq test 8");
+list.add(accountRequest);
+System.out.println("List test 9");
+plan.setAccountRequests(list);
+System.out.println("AcountReq test 10");
+System.out.println("Plan"+plan.toXml());
+//return plan;
+
+Provisioner provisioiner = new Provisioner(context);
+provisioiner.execute(plan);
+
+return plan.toXml();
+]]></Source>
+    </Script>
+    <Transition to="Stop"/>
+  </Step>
+</Workflow>

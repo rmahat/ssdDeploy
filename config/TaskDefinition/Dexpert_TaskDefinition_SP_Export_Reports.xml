@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE TaskDefinition PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<TaskDefinition executor="sailpoint.services.standard.task.ReportExtractor" name="SP Export Reports" subType="task_item_type_generic" type="Generic">
+  <Description>
+This is a task that will backup report files stored in the IIQ database in the sp_file_bucket table.  
+It should be ran prior to pruning TaskResults.
+</Description>
+  <Signature>
+    <Inputs>
+      <Argument defaultValue="30" name="prune_before_date" required="true" type="string">
+        <Prompt>Backup reports older than (number of days)</Prompt>
+      </Argument>
+      <Argument defaultValue="true" name="zip_result" type="boolean">
+        <Prompt>Zip the archived reports?</Prompt>
+      </Argument>
+      <Argument defaultValue="/Library/tomcat/webapps/sixtwoone/doc/export_reports/" name="path_to_backup" required="true" type="string">
+        <Prompt>Path to backup location</Prompt>
+      </Argument>
+      <Argument defaultValue="false" name="process_deletes" type="boolean">
+        <Prompt>Delete reports after backup</Prompt>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="reports_backed_up" type="string">
+        <Prompt>Number of reports backed up</Prompt>
+      </Argument>
+      <Argument name="reports_pruned" type="string">
+        <Prompt>Number of reports pruned</Prompt>
+      </Argument>
+    </Returns>
+  </Signature>
+</TaskDefinition>

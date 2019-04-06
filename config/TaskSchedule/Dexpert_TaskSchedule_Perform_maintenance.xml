@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE TaskSchedule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<TaskSchedule lastExecution="1549992000000" name="Perform maintenance" nextExecution="1549992300000">
+  <Arguments>
+    <Map>
+      <entry key="executor" value="Perform Maintenance"/>
+      <entry key="nextActualFireTime" value="1549992300000"/>
+    </Map>
+  </Arguments>
+  <CronExpressions>
+    <String>0 0/5 * * * ?</String>
+  </CronExpressions>
+  <Description>Perform maintenance every five minutes.</Description>
+</TaskSchedule>

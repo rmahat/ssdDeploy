@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="Dexpert_Rule_JDBC Provisining" type="JDBCOperationProvisioning">
+  <Description>This rule is used by the JDBC connector to do provisioning of the data .</Description>
+  <Signature returnType="ProvisioningResult">
+    <Inputs>
+      <Argument name="log">
+        <Description>
+          The log object associated with the SailPointContext.
+        </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>
+          A sailpoint.api.SailPointContext object that can be used to query the database if necessary.
+        </Description>
+      </Argument>
+      <Argument name="application">
+        <Description>The application whose data file is being processed.</Description>
+      </Argument>
+      <Argument name="schema">
+        <Description>The Schema currently in use.</Description>
+      </Argument>
+      <Argument name="connection">
+        <Description>A connection object to connect to database.</Description>
+      </Argument>
+      <Argument name="plan">
+        <Description>The ProvisioningPlan created against the JDBC application.</Description>
+      </Argument>
+      <Argument name="request">
+        <Description>The ProvisioningRequest created against the JDBC application.</Description>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="result">
+        <Description>A Provisioning Result object is desirable to return the status.IT can be a new object or part of  Provisioning Plan</Description>
+      </Argument>
+    </Returns>
+  </Signature>
+  <Source><![CDATA[import java.util.List;
+import java.sql.Statement;
+import sailpoint.object.*;
+import sailpoint.object.ProvisioningPlan.AccountRequest;
+import sailpoint.object.ProvisioningPlan.AttributeRequest;
+
+String ID = null;
+		String employeeId=null;
+		String firstName = null;
+		String lastName = null;
+		String gender = null;
+		String email = null;
+		String managerId = null;
+		String status = null;
+		String departmentCode=null;
+		String positionCode=null;
+		String jobCode = null;
+		String role = null;
+		//ProvisioningPlan plan = new ProvisioningPlan();// Appear as input parameter
+                System.out.println("1");
+		String userid=plan.getNativeIdentity();//return userid that request the provision
+                System.out.println(userid);
+                System.out.println("2");
+		List accReqList = plan.getAccountRequests("Dexpert Group 13 JDBC");
+                int a =accReqList.size();
+                System.out.println(Integer.toString(a));
+                System.out.println("3");
+		AccountRequest accRequest = accReqList.get(0);
+		System.out.println("4");
+		String nativeid = accRequest.getNativeIdentity();
+                System.out.println(nativeid);
+                
+		int id =0;
+		List attributeReqList = accRequest.getAttributeRequests();
+                System.out.println("6");
+		
+		for (AttributeRequest req : attributeReqList ) {
+			if (req.getName().equals("ID")) {
+				ID = (String)req.getValue();
+			}
+			if (req.getName().equals("employeeId")) {
+				employeeId = (String)req.getValue();
+			}
+			if (req.getName().equals("firstName")) {
+				firstName = (String)req.getValue();
+			}
+			if (req.getName().equals("lastName")) {
+				lastName = (String)req.getValue();
+			}
+			if (req.getName().equals("gender")) {
+				gender = (String)req.getValue();
+			}
+			if (req.getName().equals("email")) {
+				email = (String)req.getValue();
+			}
+			if (req.getName().equals("managerId")) {
+				managerId = (String)req.getValue();
+			}
+			if (req.getName().equals("status")) {
+				status = (String)req.getValue();
+			}
+			if (req.getName().equals("departmentCode")) {
+				departmentCode = (String)req.getValue();
+			}
+			if (req.getName().equals("positionCode")) {
+				positionCode = (String)req.getValue();
+			}
+			if (req.getName().equals("jobCode")) {
+				jobCode = (String)req.getValue();
+			}
+			if (req.getName().equals("role")) {
+				role = (String)req.getValue();
+			}	
+		}
+		StringBuffer queryBuffer = new StringBuffer();
+		queryBuffer.append("Insert into dexpert_jdbc.jdbc_tbl (ID,employeeID,firstName,lastName,gender,email,managerId,status,departmentCode,positionCode,jobCode,role)  value(");
+		if(null!=ID) {
+			queryBuffer.append("'"+ID+"'");
+			if (null != employeeId) {
+				queryBuffer.append(",'"+employeeId+"'");
+			}
+			else
+				queryBuffer.append(","+employeeId);
+			if (null != firstName) {
+				queryBuffer.append(",'"+firstName+"'");
+			}
+			else
+				queryBuffer.append(","+firstName);
+		if (null != lastName) {
+			queryBuffer.append(",'"+lastName+"'");
+		}
+		else
+			queryBuffer.append(","+lastName);
+		if (null != gender) {
+		queryBuffer.append(",'"+gender+"'");
+	}
+	else
+		queryBuffer.append(","+gender);
+		if (null != email) {
+			queryBuffer.append(",'"+email+"'");
+		}
+		else
+			queryBuffer.append(","+email);
+		if (null !=managerId ) {
+			queryBuffer.append(",'"+managerId+"'");
+		}
+		else
+			queryBuffer.append(","+managerId);
+		if (null != status) {
+			queryBuffer.append(",'"+status+"'");
+		}
+		else
+			queryBuffer.append(","+status);
+		if (null != departmentCode) {
+			queryBuffer.append(",'"+departmentCode+"'");
+		}
+		else
+			queryBuffer.append(","+departmentCode);
+		if (null !=positionCode ) {
+			queryBuffer.append(",'"+positionCode+"'");
+		}
+		else
+			queryBuffer.append(","+positionCode);
+		if (null != jobCode) {
+			queryBuffer.append(",'"+jobCode+"'");
+		}
+		else
+			queryBuffer.append(","+jobCode);
+		if (null != role) {
+			queryBuffer.append(",'"+role+"'"+")");
+		}
+		else
+			queryBuffer.append(","+role+")");
+		}
+		Statement stmt =null;
+		String query = queryBuffer.toString();
+                  System.out.println(query);
+		ProvisioningResult result = new ProvisioningResult();
+		try {
+			stmt = connection.createStatement();
+			stmt.execute(query);
+		}catch (Exception e) {
+		result.addError(e.getMessage());
+		result.setStatus(ProvisioningResult.STATUS_FAILED);
+		}finally {
+			if (stmt !=null)
+				stmt.close();	
+		}
+	return result;]]></Source>
+</Rule>

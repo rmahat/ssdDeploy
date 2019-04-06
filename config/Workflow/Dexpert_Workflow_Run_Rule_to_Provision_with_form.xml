@@ -1,0 +1,187 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" name="Run Rule to Provision with form" type="IdentityLifecycle">
+  <Variable input="true" name="trigger">
+    <Description>The IdentityTrigger</Description>
+  </Variable>
+  <Variable input="true" name="event">
+    <Description>The IdentityChangeEvent</Description>
+  </Variable>
+  <Variable input="true" name="identityName">
+    <Description>The name of the identity.</Description>
+  </Variable>
+  <Variable initializer="script:(identityDisplayName != void) ? identityDisplayName : resolveDisplayName(identityName)" input="true" name="identityDisplayName">
+    <Description>The displayName of the identity being updated.  
+       Query for this using a projection query and fall back to the name.</Description>
+  </Variable>
+  <Variable initializer="string:AccountsRequest" input="true" name="flow">
+    <Description>What type of LCM flow is this</Description>
+  </Variable>
+  <Variable name="plan">
+    <Description>The provisioning plan which is built during the workflow.</Description>
+  </Variable>
+  <Variable initializer="string:LCM" input="true" name="source">
+    <Description>String version of sailpoint.object.Source to indicate  
+       where the request originated.  Defaults to LCM.</Description>
+  </Variable>
+  <Variable initializer="string:true" input="true" name="trace">
+    <Description>Used for debugging this workflow and when set to true trace  
+       will be sent to stdout.</Description>
+  </Variable>
+  <Variable name="project">
+    <Description>ProvisioningProject which is just a compiled version of the ProvisioningPlan.</Description>
+  </Variable>
+  <Description>Enable birthright accounts when an employee joins the company.</Description>
+  <Step icon="Start" name="Start" posX="30" posY="10" wait="1">
+    <Transition to="Provisioning Form"/>
+  </Step>
+  <Step icon="Message" name="Create Birthright Plan" posX="389" posY="10" resultVariable="plan">
+    <Description>Process the user that joined and create plan for the user. Only create AD account for new "employees".</Description>
+    <Script>
+      <Source><![CDATA[import org.apache.log4j.Logger;
+import java.util.List;
+import java.util.ArrayList;
+import sailpoint.object.*;
+import sailpoint.object.ProvisioningPlan.*;
+import sailpoint.object.ProvisioningPlan.AccountRequest;
+import sailpoint.object.ProvisioningPlan.AttributeRequest;
+import sailpoint.api.Provisioner;
+  
+
+//Logger logger = Logger.getLogger("DExpertslog");
+
+
+Identity ident = context.getObjectByName(Identity.class,searchIdentity);
+
+String username = identity.getName();
+//String username = "dinesh.khanal";
+//logger.info("Test rule.....");
+ // logger.info("username "+username);
+ // logger.info("ident "+ident);
+// Creating the New ProvisioningPlan
+  ProvisioningPlan plan = new ProvisioningPlan();
+
+//plan
+plan.setIdentity(ident);
+//  logger.info("plan "+plan);
+//Provisining Plan Account Request
+AccountRequest  accountRequest = new AccountRequest();
+ //  logger.info("AcountReq test 0 ");
+System.out.println("AcountReq test 0");
+String dn="CN="+username+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+//String dn=cn + ",OU=USA,DC=messi,DC=local";
+ //    logger.info("dn "+dn);
+
+accountRequest.setApplication("Dexpert_Application_AD_Provisioning");
+  accountRequest.setNativeIdentity(dn);
+  
+System.out.println("AcountReq test 1");
+
+//AD application Name for Requested Ac
+
+
+
+
+
+
+ // logger.info("aplication set");
+
+
+  // Create Operation
+//accountRequest.setOperation("sAMAccountName",ProvisioningPlan.AccountRequest.Operation.Set,username);
+accountRequest.add(new AttributeRequest("samAccountName",ProvisioningPlan.Operation.Set,username));
+  accountRequest.add(new AttributeRequest("password",ProvisioningPlan.Operation.Set,"nepal123!"));
+System.out.println("AcountReq test 2");
+  
+  
+//Add plan in accountRequest
+ 
+plan.add(accountRequest);
+
+ 
+
+// Adding default membership you can attribute request
+
+AttributeRequest attributeRequest = new AttributeRequest();
+System.out.println("AttributeReq test 3");
+
+
+attributeRequest.setName("memberOf");
+System.out.println("AttributeReq test 4");
+
+
+attributeRequest.setOperation(ProvisioningPlan.Operation.Add);
+System.out.println("AttributeReq test 5");
+String ManagedAttributesIT= "CN="+managedAttribute+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+attributeRequest.setValue(ManagedAttributesIT);
+System.out.println("AttributeReq test 6");
+List list =new ArrayList();
+System.out.println("List test 7");
+accountRequest.add(attributeRequest);
+System.out.println("AcountReq test 8");
+list.add(accountRequest);
+System.out.println("List test 9");
+plan.setAccountRequests(list);
+System.out.println("AcountReq test 10");
+System.out.println("Plan"+plan.toXml());
+//return plan;
+
+Provisioner provisioiner = new Provisioner(context);
+provisioiner.execute(plan);
+
+return plan.toXml();]]></Source>
+    </Script>
+    <Transition to="Compile Project"/>
+  </Step>
+  <Step action="call:compileProvisioningProject" name="Compile Project" posX="540" posY="13" resultVariable="project">
+    <Arg name="requester" value="string:spadmin"/>
+    <Arg name="requireCreateTemplates" value="string:false"/>
+    <Arg name="identityName" value="ref:identityName"/>
+    <Arg name="noApplicationTemplates" value="string:true"/>
+    <Arg name="source" value="string:UI"/>
+    <Arg name="optimisticProvisioning" value="string:false"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Description>Compile the provisioning plan into a provisioning project.  
+                 If you need to pass in provisioner options like "noFiltering"  
+                 or "noRoleDeprovisioning" you must pass them as explicit  
+                 arguments to the call.  
+                 The evaluation options "requester" and "source" are commonly  
+                 set here.               
+                 You can also pass things into the Template and Field scripts by  
+                 defining Args in this step.</Description>
+    <Transition to="Provision"/>
+  </Step>
+  <Step action="call:provisionProject" icon="Provision" name="Provision" posX="682" posY="10">
+    <Arg name="background" value="string:true"/>
+    <Arg name="project" value="ref:project"/>
+    <Description>Provision the project.</Description>
+    <Transition to="end"/>
+  </Step>
+  <Step icon="Stop" name="end" posX="784" posY="10"/>
+  <Step icon="Default" name="Provisioning Form" posX="199" posY="12">
+    <Approval name="ADProvisioningForm" owner="spadmin" return="" send="">
+      <Form name="ADProvisioningForm">
+        <Attributes>
+          <Map>
+            <entry key="pageTitle" value="ADProvisioningForm"/>
+          </Map>
+        </Attributes>
+        <Section name="Managed Attribute For AD">
+          <Field name="searchIdentity" required="true" type="string">
+            <RuleRef>
+              <Reference class="sailpoint.object.Rule" name="RuleSearchIdentityBigyan"/>
+            </RuleRef>
+          </Field>
+          <Field name="managedAttribute" required="true" type="string">
+            <RuleRef>
+              <Reference class="sailpoint.object.Rule" name="ruleManagedAttributeBigyan"/>
+            </RuleRef>
+          </Field>
+        </Section>
+        <Button action="next" label="Next"/>
+        <Button action="cancel" label="Cancel"/>
+      </Form>
+    </Approval>
+    <Transition to="Create Birthright Plan"/>
+  </Step>
+</Workflow>

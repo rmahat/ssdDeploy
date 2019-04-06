@@ -1,0 +1,327 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Application PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Application connector="sailpoint.connector.OpenConnectorAdapter" featuresString="DISCOVER_SCHEMA, PROVISIONING, SYNC_PROVISIONING, UNLOCK, ENABLE, SEARCH, AUTHENTICATE, PASSWORD, CURRENT_PASSWORD" icon="internetIcon" name="RupakOkta" profileClass="" type="Okta">
+  <Attributes>
+    <Map>
+      <entry key="accountAggFilter"/>
+      <entry key="accountReadOnlyAttribute">
+        <value>
+          <List>
+            <String>id</String>
+            <String>activated</String>
+            <String>created</String>
+            <String>status</String>
+            <String>lastLogin</String>
+            <String>lastUpdated</String>
+            <String>passwordChanged</String>
+            <String>statusChanged</String>
+          </List>
+        </value>
+      </entry>
+      <entry key="acctAggregationEnd">
+        <value>
+          <Date>1549991242688</Date>
+        </value>
+      </entry>
+      <entry key="acctAggregationStart">
+        <value>
+          <Date>1549991242549</Date>
+        </value>
+      </entry>
+      <entry key="afterProvisioningRule"/>
+      <entry key="apiToken" value="1:OP/ZkoGoRZukjUbqMpMSdkugPdCKdRsq4Py/dMe1UHOVUjfTJJuGmZ5CJGSmuaaJ"/>
+      <entry key="beforeProvisioningRule"/>
+      <entry key="compositeDefinition"/>
+      <entry key="connectorClass" value="openconnector.connector.okta.OktaConnector"/>
+      <entry key="encrypted" value="apiToken"/>
+      <entry key="groupAggFilter" value="type eq &quot;BUILT_IN&quot; or type eq &quot;OKTA_GROUP&quot;"/>
+      <entry key="groupReadOnlyAttribute">
+        <value>
+          <List>
+            <String>lastUpdated</String>
+            <String>created</String>
+            <String>lastMembershipUpdated</String>
+            <String>type</String>
+            <String>objectClass</String>
+          </List>
+        </value>
+      </entry>
+      <entry key="host" value="https://jacks-sdstatedexperts.okta.com"/>
+      <entry key="lastAccountAggrgationDateTime" value="2019-02-12T17:07:21.021Z"/>
+      <entry key="maxPermissibleCalls" value="20"/>
+      <entry key="nativeChangeDetectionAttributeScope" value="entitlements"/>
+      <entry key="nativeChangeDetectionAttributes"/>
+      <entry key="nativeChangeDetectionEnabled">
+        <value>
+          <Boolean/>
+        </value>
+      </entry>
+      <entry key="nativeChangeDetectionOperations"/>
+      <entry key="pageSize" value="200"/>
+      <entry key="restEndPointMap">
+        <value>
+          <Map>
+            <entry key="apps" value="/api/v1/apps"/>
+            <entry key="auth" value="/api/v1/authn"/>
+            <entry key="currentUser" value="/api/v1/users/me"/>
+            <entry key="groups" value="/api/v1/groups"/>
+            <entry key="logs" value="/api/v1/logs"/>
+            <entry key="schemas" value="/api/v1/meta/schemas/user/default"/>
+            <entry key="users" value="/api/v1/users"/>
+          </Map>
+        </value>
+      </entry>
+      <entry key="retryableErrors">
+        <value>
+          <List>
+            <String>failed to respond</String>
+          </List>
+        </value>
+      </entry>
+      <entry key="sysDescriptions">
+        <value>
+          <Map>
+            <entry key="en_US"/>
+          </Map>
+        </value>
+      </entry>
+      <entry key="templateApplication" value="Okta"/>
+    </Map>
+  </Attributes>
+  <Owner>
+    <Reference class="sailpoint.object.Identity" name="spadmin"/>
+  </Owner>
+  <ProvisioningForms>
+    <Form name="Create Account" objectType="account" type="Create">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="Create Account"/>
+        </Map>
+      </Attributes>
+      <Section>
+        <Field displayName="con_prov_policy_okta_firstname" name="firstName" required="true" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_okta_lastname" name="lastName" required="true" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_okta_email" name="email" required="true" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_okta_login" helpKey="help_con_prov_policy_okta_login" name="login" required="true" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_okta_activate" name="activate" required="true" reviewRequired="true" type="boolean" value="true"/>
+        <Field displayName="con_prov_policy_okta_password" name="password" reviewRequired="true" type="secret"/>
+      </Section>
+    </Form>
+    <Form name="Disable Account" objectType="account" type="Disable">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="Disable Account"/>
+        </Map>
+      </Attributes>
+      <Section>
+        <Field displayName="con_prov_policy_okta_status" helpKey="help_con_prov_policy_okta_status" name="status" required="true" reviewRequired="true" type="string" value="Suspend">
+          <AllowedValuesDefinition>
+            <Value>
+              <List>
+                <String>Suspend</String>
+                <String>Deprovision</String>
+              </List>
+            </Value>
+          </AllowedValuesDefinition>
+        </Field>
+      </Section>
+    </Form>
+    <Form name="Create Group" objectType="group" type="Create">
+      <Attributes>
+        <Map>
+          <entry key="pageTitle" value="Create Group"/>
+        </Map>
+      </Attributes>
+      <Section>
+        <Field displayName="con_prov_policy_okta_group_name" name="name" required="true" reviewRequired="true" type="string"/>
+        <Field displayName="con_prov_policy_okta_group_description" name="description" reviewRequired="true" type="string"/>
+      </Section>
+    </Form>
+  </ProvisioningForms>
+  <Schemas>
+    <Schema displayAttribute="login" identityAttribute="id" instanceAttribute="" nativeObjectType="user" objectType="account">
+      <AttributeDefinition name="id" type="string">
+        <Description>Unique key for user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="login" type="string">
+        <Description>Unique identifier for the user (username)</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="email" type="string">
+        <Description>Primary email address of the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="secondEmail" type="string">
+        <Description>Secondary email address of user typically used for account recovery</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="firstName" type="string">
+        <Description>First name of user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastName" type="string">
+        <Description>Last name of user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="middleName" type="string">
+        <Description>Middle name(s) of user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="displayName" type="string">
+        <Description>Name of the user, suitable for display to end users</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="nickName" type="string">
+        <Description>Casual way to address the user in real life</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="title" type="string">
+        <Description>User's title, such as "Vice President"</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="honorificPrefix" type="string">
+        <Description>Honorific prefix(es) of the user, or title in most Western languages</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="honorificSuffix" type="string">
+        <Description>Honorific suffix(es) of the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="profileUrl" type="string">
+        <Description>URL of user's online profile (e.g. a web page)</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="primaryPhone" type="string">
+        <Description>Primary phone number of user such as home number</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="mobilePhone" type="string">
+        <Description>Mobile phone number of user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="streetAddress" type="string">
+        <Description>Full street address component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="city" type="string">
+        <Description>City or locality component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="state" type="string">
+        <Description>State or region component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="zipCode" type="string">
+        <Description>Zipcode or postal code component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="countryCode" type="string">
+        <Description>Country name component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="postalAddress" type="string">
+        <Description>Mailing address component of user's address</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="preferredLanguage" type="string">
+        <Description>User's preferred written or spoken languages</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="locale" type="string">
+        <Description>User's default location for purposes of localizing items such as currency, date time format,            numerical representations, etc</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="timezone" type="string">
+        <Description>Users's time zone</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="userType" type="string">
+        <Description>Used to identify the organization to user relationship such as "Employee" or "Contractor"</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="employeeNumber" type="string">
+        <Description>Organization or company assigned unique identifier for the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="costCenter" type="string">
+        <Description>Name of cost centre assigned to the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="organization" type="string">
+        <Description>Name of user's organisation</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="division" type="string">
+        <Description>Name of user's division</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="department" type="string">
+        <Description>Name of user's department</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="manager" type="string">
+        <Description>Display name of the user's manager</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="managerId" type="string">
+        <Description>ID of a user's manager</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="status" type="string">
+        <Description>Status of the user. e.g. ACTIVE, PROVISIONED, DEPROVISIONED etc</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="created" type="string">
+        <Description>Timestamp of user creation</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="activated" type="string">
+        <Description>Timestamp when transition to ACTIVE status completed</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="statusChanged" type="string">
+        <Description>Timestamp when status last changed</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastUpdated" type="string">
+        <Description>Timestamp when user was last updated</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastLogin" type="string">
+        <Description>Timestamp of last login</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="passwordChanged" type="string">
+        <Description>Timestamp when password was last changed</Description>
+      </AttributeDefinition>
+      <AttributeDefinition entitlement="true" managed="true" multi="true" name="groups" schemaObjectType="group" type="string">
+        <Description>Groups assigned to the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition entitlement="true" managed="true" multi="true" name="applications" schemaObjectType="application" type="string">
+        <Description>Applications assigned to the user</Description>
+      </AttributeDefinition>
+      <AttributeDefinition entitlement="true" managed="true" multi="true" name="roles" type="string">
+        <Description>Administrator roles assigned to the user</Description>
+      </AttributeDefinition>
+    </Schema>
+    <Schema aggregationType="group" displayAttribute="label" identityAttribute="applicationId" instanceAttribute="" nativeObjectType="application" objectType="application">
+      <AttributeDefinition name="applicationId" remediationModificationType="None" type="string">
+        <Description>Unique key for application</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="name" remediationModificationType="None" type="string">
+        <Description>Unique key for application definition</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="label" remediationModificationType="None" type="string">
+        <Description>Unique user-defined display name for application</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="created" remediationModificationType="None" type="string">
+        <Description>Timestamp when application was created</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="status" remediationModificationType="None" type="string">
+        <Description>Status of application</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="signOnMode" remediationModificationType="None" type="string">
+        <Description>Authentication mode of application</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="features" remediationModificationType="None" type="string">
+        <Description>Enabled application features</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastUpdated" remediationModificationType="None" type="string">
+        <Description>Timestamp when application was last updated</Description>
+      </AttributeDefinition>
+    </Schema>
+    <Schema aggregationType="group" displayAttribute="name" featuresString="PROVISIONING" identityAttribute="groupId" instanceAttribute="" nativeObjectType="group" objectType="group">
+      <AttributeDefinition name="groupId" remediationModificationType="None" type="string">
+        <Description>Unique key for group</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="name" remediationModificationType="None" type="string">
+        <Description>Name of the group</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="created" remediationModificationType="None" type="string">
+        <Description>Timestamp when group was created</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="description" remediationModificationType="None" type="string">
+        <Description>Description of the group</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastMembershipUpdated" remediationModificationType="None" type="string">
+        <Description>Timestamp when group's memberships were last updated</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="type" remediationModificationType="None" type="string">
+        <Description>Determines how a group's profile and memberships are managed</Description>
+      </AttributeDefinition>
+      <AttributeDefinition name="lastUpdated" remediationModificationType="None" type="string">
+        <Description>Timestamp when group's profile was last updated</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="objectClass" remediationModificationType="None" type="string">
+        <Description>Determines the group's profile</Description>
+      </AttributeDefinition>
+      <AttributeDefinition multi="true" name="applications" schemaObjectType="application" type="string">
+        <Description>Applications assigned to group</Description>
+      </AttributeDefinition>
+    </Schema>
+  </Schemas>
+  <ApplicationScorecard/>
+</Application>

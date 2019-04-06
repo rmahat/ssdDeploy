@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" name="BigyanDisable">
+  <Step icon="Start" name="Start" posX="20" posY="20">
+    <Transition to="Form"/>
+  </Step>
+  <Step icon="Stop" name="Stop" posX="681" posY="21"/>
+  <Step icon="Default" name="Form" posX="305" posY="15">
+    <Approval name="BigyanForm" owner="spadmin" return="userName" send="">
+      <Form name="BigyanForm">
+        <Attributes>
+          <Map>
+            <entry key="pageTitle" value="BigyanForm"/>
+          </Map>
+        </Attributes>
+        <Section name="Identity">
+          <Field displayName="User Name" name="userName" type="sailpoint.object.Identity"/>
+        </Section>
+        <Button action="next" label="Next"/>
+        <Button action="cancel" label="Cancel"/>
+      </Form>
+    </Approval>
+    <Transition to="DisablePlan"/>
+  </Step>
+  <Step action="rule:BigyanDisable" icon="Default" name="DisablePlan" posX="445" posY="17">
+    <Transition to="Stop"/>
+  </Step>
+</Workflow>

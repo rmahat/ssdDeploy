@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE QuickLink PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<QuickLink action="external" category="Admin" messageKey="Task Resulter" name="TaskResulter">
+  <Attributes>
+    <Map>
+      <entry key="url" value="plugins/pluginPage.jsf?pn=TaskResulter"/>
+    </Map>
+  </Attributes>
+  <QuickLinkOptions allowSelf="true">
+    <DynamicScopeRef>
+      <Reference class="sailpoint.object.DynamicScope" name="TaskResulterPopulation"/>
+    </DynamicScopeRef>
+  </QuickLinkOptions>
+</QuickLink>

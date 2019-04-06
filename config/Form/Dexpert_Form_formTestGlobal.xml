@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Form name="formTestGlobal" type="Workflow">
+  <Attributes>
+    <Map>
+      <entry key="pageTitle" value="formTestGlobal"/>
+    </Map>
+  </Attributes>
+  <Description/>
+  <Section name="Section 1">
+    <Field name="Field 1" type="string"/>
+    <Field name="Field 2" type="string"/>
+  </Section>
+</Form>

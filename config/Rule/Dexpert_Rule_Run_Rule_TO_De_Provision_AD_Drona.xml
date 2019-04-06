@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="Run_Rule_TO_De_Provision_AD_Drona">
+  <Description>Rule to provision on AD.</Description>
+  <Signature returnType="Map">
+    <Inputs>
+      <Argument name="log">
+        <Description>  
+      The log object associated with the SailPointContext.  
+      </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>  
+        A sailpoint.api.SailPointContext object that can be used to query the database if necessary.  
+      </Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source><![CDATA[  
+import java.util.*;
+  import java.lang.String;
+  import sailpoint.object.Identity;
+  import sailpoint.api.IdentityService;
+  import sailpoint.object.Application;
+  import sailpoint.object.Link;
+  import java.util.List;
+  import java.util.Map;
+  import java.util.HashMap;
+  
+  import sailpoint.api.SailPointContext;
+  
+ import java.util.Arrays;
+ import sailpoint.object.ProvisioningPlan;
+ import sailpoint.object.ProvisioningPlan.AccountRequest;
+ import sailpoint.object.ProvisioningPlan.AttributeRequest;
+  import sailpoint.object.ProvisioningPlan.AccountRequest.Operation;
+  import  sailpoint.api.Provisioner;
+
+ 
+
+
+
+  public static ProvisioningPlan CustomLeaverProvisioningPlan(){
+		// for testing purpose only Dont forget to remove the first line code
+   Identity identity = context.getObjectByName(Identity.class, "drona.mainali");
+  //Identity identity = context.getObjectByName(Identity.class, identityName);
+   
+    
+    
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+      Application application=context.getObjectByName(Application.class,"Dexpert AD Group 13 latest");
+     List links=serv.getLinks(identity,application);
+	 
+			if(null != links && !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+ProvisioningPlan plan = new ProvisioningPlan();
+AccountRequest accountRequest = new AccountRequest();
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identity);
+accountRequest.setApplication("Dexpert AD Group 13 latest");
+accountRequest.setNativeIdentity(nativeIdentity);
+
+accountRequest.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
+
+
+    
+
+List accreqList = new ArrayList();
+accreqList.add(accountRequest);
+plan.setAccountRequests(accreqList);
+
+		plan.setIdentity(identity); 
+		//log.error(plan.toXml());
+    System.out.println(plan.toXml());
+		
+    
+    return plan;
+}
+	
+  
+ProvisioningPlan plan=CustomLeaverProvisioningPlan();
+Provisioner provisioner = new Provisioner(context);
+provisioner.execute(plan);
+
+
+
+]]></Source>
+</Rule>

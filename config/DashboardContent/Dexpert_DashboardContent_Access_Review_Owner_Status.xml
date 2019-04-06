@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<DashboardContent name="Access Review Owner Status" regionSize="0" source="dashboard/contentOwnerCerts.xhtml" title="dash_title_cert_owner_status" type="My">
+  <Description>dash_description_cert_owner_status</Description>
+  <RequiredRights>
+    <Reference class="sailpoint.object.SPRight" name="ViewCertificationOwnerStatus"/>
+    <Reference class="sailpoint.object.SPRight" name="ViewAllIdentitiesCertificationOwnerStatus"/>
+  </RequiredRights>
+</DashboardContent>

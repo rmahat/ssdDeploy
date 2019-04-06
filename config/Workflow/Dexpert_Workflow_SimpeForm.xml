@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" name="SimpeForm">
+  <Step icon="Start" name="Start" posX="20" posY="20">
+    <Transition to="Generic Step"/>
+  </Step>
+  <Step icon="Default" name="Generic Step" posX="244" posY="16">
+    <Approval name="TestForm" owner="spadmin" return="" send="">
+      <Form name="TestForm">
+        <Attributes>
+          <Map>
+            <entry key="pageTitle" value="TestForm"/>
+          </Map>
+        </Attributes>
+        <Section name="Section 1">
+          <Field name="Field 1" required="true" type="string"/>
+          <Field name="Field 2" required="true" type="string"/>
+        </Section>
+      </Form>
+    </Approval>
+    <Transition to="Stop"/>
+  </Step>
+  <Step action="script:System.out.println(&quot;End&quot;);" icon="Stop" name="Stop" posX="461" posY="11"/>
+</Workflow>

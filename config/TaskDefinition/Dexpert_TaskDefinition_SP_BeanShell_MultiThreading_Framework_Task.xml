@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE TaskDefinition PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<TaskDefinition executor="sailpoint.task.RuleExecutor" name="SP BeanShell MultiThreading Framework Task" progressInterval="5000" progressMode="String" resultAction="Rename" subType="Generic" template="true" type="Generic">
+  <Attributes>
+    <Map>
+      <entry key="perItemRuleName" value="unspecified"/>
+      <entry key="queueBuilderRuleName" value="unspecified"/>
+      <entry key="ruleConfig">
+        <value>
+          <Map>
+            <entry key="placeHolder" value="false"/>
+          </Map>
+        </value>
+      </entry>
+      <entry key="ruleName" value="SP BeanShell MultiThreading Framework Rule"/>
+    </Map>
+  </Attributes>
+  <Description>Launches a MultiThreaded custom task using bean shell rules.</Description>
+  <Owner>
+    <Reference class="sailpoint.object.Identity" name="spadmin"/>
+  </Owner>
+  <Signature>
+    <Inputs>
+      <Argument filterString="type == Rule.Type.BuildMap" helpKey="The Queue-builder rule is a rule that identifies items to process and puts Strings onto the workQueue for worker threads to process." name="queueBuilderRuleName" type="Rule">
+        <Description>Queue-builder rule name.</Description>
+        <Prompt>Queue-builder rule name.</Prompt>
+      </Argument>
+      <Argument filterString="type == Rule.Type.BuildMap" helpKey="The Per-item rule is a rule that accepts a String called 'workItem' that idenifies an object or data set to process.  It parses the workItem string and does whatever work the Rule intends to accomplish." name="perItemRuleName" type="Rule">
+        <Description>Per-item rule name.</Description>
+        <Prompt>Per-item rule name.</Prompt>
+      </Argument>
+      <Argument filterString="type == Rule.Type.BuildMap" helpKey="The initialization rule is a rule that does initial setup logic before the queue builder rule is invoked." name="initializationRuleName" type="Rule">
+        <Description>Initialization rule name.</Description>
+        <Prompt>Initialization rule name.</Prompt>
+      </Argument>
+      <Argument filterString="type == Rule.Type.BuildMap" helpKey="The cleanup rule is a rule that does cleanup or tear-down logic after the per-item rules have completed." name="cleanupRuleName" type="Rule">
+        <Description>Cleanup rule name.</Description>
+        <Prompt>Cleanup rule name.</Prompt>
+      </Argument>
+      <Argument helpKey="The number of threads to use during processing.  If not specified the number of threads defaults to 2x the number of cores available on the Task Server running the task." name="numThreadsConfig" type="int">
+        <Description>Number of worker threads.</Description>
+        <Prompt>Number of worker threads.</Prompt>
+      </Argument>
+    </Inputs>
+  </Signature>
+</TaskDefinition>

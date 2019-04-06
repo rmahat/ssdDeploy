@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow handler="sailpoint.api.StandardWorkflowHandler" libraries="Identity,Role,PolicyViolation,LCM,BatchRequest" name="SST View Unit Tests WF" taskType="LCM" type="LCMProvisioning">
+  <Variable initializer="" name="trace">
+    <Description>
+		      Used for debugging this workflow and when set to true trace
+		      will be sent to stdout.
+		    </Description>
+  </Variable>
+  <Variable initializer="true" name="transient">
+    <Description>
+		      Used for debugging this workflow and when set to true trace
+		      will be sent to stdout.
+		    </Description>
+  </Variable>
+  <Variable name="viewForm"/>
+  <Variable name="identityModel"/>
+  <RuleLibraries>
+    <Reference class="sailpoint.object.Rule" name="SST Unit Test Rules Library"/>
+  </RuleLibraries>
+  <Step icon="Start" name="Start" posX="28" posY="12">
+    <Transition to="Build Identity Model"/>
+  </Step>
+  <Step name="Build Identity Model" resultVariable="identityModel">
+    <Script>
+      <Source><![CDATA[
+		  			return getIdentityModel();
+		  		]]></Source>
+    </Script>
+    <Transition to="Build Form"/>
+  </Step>
+  <Step name="Build Form" resultVariable="viewForm">
+    <Script>
+      <Source><![CDATA[
+		  			return getUTReportForm();
+		  		]]></Source>
+    </Script>
+    <Transition to="Display Form"/>
+  </Step>
+  <Step name="Display Form">
+    <Approval mode="serial" owner="ref:launcher" return="identityModel" send="identityModel">
+      <Arg name="workItemType" value="Approval"/>
+      <Arg name="workItemForm" value="ref:viewForm"/>
+      <Arg name="workItemDescription" value="UT Report Form"/>
+      <Arg name="workItemFormBasePath" value="identityModel"/>
+    </Approval>
+    <Transition to="end" when="!approved"/>
+    <Transition to="Run Tests"/>
+  </Step>
+  <Step name="Run Tests">
+    <Script>
+      <Source><![CDATA[
+		  			import sailpoint.object.*;
+		  			import java.util.*;
+		  			
+		  			Rule rule = context.getObjectByName(Rule.class, "SST Unit Test All Rule");
+		  			Map params = new HashMap();
+		  			
+		  			params.put("sendReport", "true");
+		  			params.put("recipients", "");
+		  			
+		  			context.runRule(rule, params);
+		  		]]></Source>
+    </Script>
+    <Transition to="Build Form"/>
+  </Step>
+  <Step icon="Stop" name="end" posX="720" posY="163"/>
+</Workflow>
