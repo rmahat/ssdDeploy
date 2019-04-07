@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule  language="beanshell"  name="Test CreateModifyDeleteRule">
+<ReferencedRules>
+    <Reference class="sailpoint.object.Rule"  name="CreateModifyDelete Rules Library"/>
+  </ReferencedRules>
+  <Signature returnType="Map">
+    <Inputs>
+      <Argument name="log">
+        <Description>  
+      The log object associated with the SailPointContext.  
+      </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>  
+        A sailpoint.api.SailPointContext object that can be used to query the database if necessary.  
+      </Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source>
+  import sailpoint.object.*;
+  	import org.apache.log4j.Logger;
+	List list=new ArrayList();
+	Identity identity=context.getObject(Identity.class,"barack.obama");
+	return getApplications(identity);
+    
+  </Source>
+</Rule>
