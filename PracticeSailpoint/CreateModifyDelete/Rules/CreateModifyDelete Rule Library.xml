@@ -48,6 +48,30 @@
 	//SailPointContext context =new SailPointContext;
 	//private Log logger = LogFactory.getLog("rule.SP.Joiner.RulesLibrary");
 	
+	/**
+	 * Returns boolean by checking the user with same name have already  
+	 * the account in identitycube
+	 * @param  User Identity to check the the identity
+	 * @return      true if user name is already
+	 */
+	 
+	 
+	public boolean isUserAlready(String testUser){
+		
+		Identity identity=context.getObjectByName(Identity.class,testUser);
+		  boolean bolval=false;
+		  if (identity!=null){
+		  System.out.println(identity.getName());
+		  bolval=true;
+		  }
+		  else{
+		  System.out.println("The identity is null");
+		  bolval=false;
+		  }
+		  return bolval;
+	}
+	
+	
 	public List getApplications(Identity identity){
 		List links = identity.getLinks();  
 		List appList=new ArrayList();
@@ -219,6 +243,29 @@
 		return nativeId;
 	}
 	
+/*
+public boolean isUserAlready(Identity identity){
+		
+		String testUser=identity.getName();
+		Filter f1 = Filter.eq("name",testUser);
+		QueryOptions qo = new QueryOptions();
+		qo.addFilter(f1);
+		List ma = context.getObjects(Identity.class, qo); 
+		 int len=0;
+		 try {
+		  len=ma.size();
+		  boolean bolval=false;
+		  if(len==1){
+			bolval=true;
+		  }
+		  }
+		  catch(Exception e){
+		  
+		  bolval=false
+		  }
+		  return bolval;	
+	}
+*/
 	
 	
 	</Source>

@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<Form hidden="true" name="CreateModifyDeleteForm" type="RegisterIdentity">
+<Form hidden="true" name="CreateModifyDeleteForm" type="RegisterIdentity" >
   <Attributes>
     <Map>
       <entry key="pageTitle" value="User Selection Form"/>
     </Map>
   </Attributes>
   <Section>
-    <Field displayName="UserName" filterString="" name="identityName" postBack="true" required="true" type="sailpoint.object.Identity"/>
-    <Field displayName="Application" dynamic="true" postBack="true" filterString="" name="application" type="string">
+    <Field displayName="UserName" filterString="" name="userName" postBack="true" dynamic="true" required="true" type="sailpoint.object.Identity"/>
+    <Field displayName="Application" dynamic="true" postBack="true" required="true" filterString="" name="application" type="string">
      <AllowedValuesDefinition>
               <Value>
                 <List>
@@ -18,8 +18,8 @@
               </Value>
             </AllowedValuesDefinition>
     </Field>
-	 <Field displayName="Select Operation" dynamic="true" postBack="true" filterString="" name="operation" type="string">
-     <AllowedValuesDefinition>
+	 <Field dependencies="userName,application" displayName="Select Operation" dynamic="true" postBack="true" required="true" filterString="" name="operation" type="string">
+	 <AllowedValuesDefinition>
               <Value>
                 <List>
                   <String>Create</String>
@@ -27,7 +27,27 @@
 				  <String>Delete</String>
                 </List>
               </Value>
-            </AllowedValuesDefinition>
+     </AllowedValuesDefinition>
+			<ValidationScript>
+			<Includes>
+			<Reference class="sailpoint.object.Rule"  name="CreateModifyDelete Rules Library"/>
+			</Includes>
+			
+				<Source>
+				 import sailpoint.object.*;
+				 import sailpoint.api.*;
+				 //SailPointContext context= SailPointFactory.getCurrentContext();
+				 Identity testIdentity=context.getObjectByName(Identity.class,userName);
+				 String name=testIdentity.getName();
+				 System.out.println(name);
+					if (isUserAlready(testIdentity)) {
+					
+					return "Value must be less than or equal to 10";
+					}
+					else
+					return null;
+				</Source>
+			</ValidationScript>
     </Field>
 	<Field displayName="Choose New OU" dynamic="true" filterString="" name="ou" type="string">
 		<Attributes>
@@ -36,6 +56,7 @@
 					<value>
 						<Script>
 							<Source>
+								import sailpoint.object.*;
 								if ("Modify".equals(operation) @and "Dexperts AD Group 13".equals(application)) {
 								//field.setRequired(true);
 								return false;

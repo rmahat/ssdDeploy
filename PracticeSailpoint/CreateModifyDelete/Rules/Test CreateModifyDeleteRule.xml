@@ -23,7 +23,8 @@
   	import org.apache.log4j.Logger;
 	List list=new ArrayList();
 	Identity identity=context.getObject(Identity.class,"barack.obama");
-	return getApplications(identity);
+	//return getApplications(identity);
+	return isUserAlready(identity);
     
   </Source>
 </Rule>
