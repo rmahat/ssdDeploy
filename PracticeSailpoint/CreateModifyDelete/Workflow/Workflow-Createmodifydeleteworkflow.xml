@@ -506,13 +506,15 @@ AccountRequest accReq = new AccountRequest();
 accReq.setApplication(appName); 
 //Plan for AD Application
 
+
+if (ADapp.equals(appName)){
 String nativeIdentity;
     
 IdentityService serv=new IdentityService(context);
 Application app=context.getObjectByName(Application.class,appName);
 List links=serv.getLinks(identityObject,app);
 	 
-			if(null != links )//&& !links.isEmpty())
+			if(null != links)//&& !links.isEmpty())
       {
         Link link=links.get(0);
        nativeIdentity =link.getNativeIdentity();
@@ -523,7 +525,12 @@ plan.setIdentity(identityObject);
 accReq.setNativeIdentity(nativeIdentity);
 
 accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
-
+}
+else if (JDBCapp.equals(appName)){
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(identityName);
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
+}
  
 accreqs.add(accReq);  
 plan.setAccountRequests(accreqs);  
@@ -610,10 +617,12 @@ List links=serv.getLinks(identityObject,app);
 System.out.println("nativeIdentity"+nativeIdentity);
 plan.setIdentity(identityObject);
 accReq.setNativeIdentity(nativeIdentity);
-String dn="CN="+identityName+",OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+//String dn="CN="+identityName+",OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+String dn="CN="+identityName;
 String dnPath="OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
-accReq.setNativeIdentity(dn);
+//accReq.setNativeIdentity(dn);
 System.out.println(dn);
+accReq.add(new AttributeRequest("AC_NewName",ProvisioningPlan.Operation.Set,dn));
 accReq.add(new AttributeRequest("AC_NewParent",ProvisioningPlan.Operation.Set,dnPath));//ProvisioningPlan.Operation.Set,
 
 }
@@ -622,7 +631,8 @@ else if (JDBCapp.equals(appName))
 {
 //Plan for JDBC Application
 accReq.setNativeIdentity(identityName);
-accReq.add(new AttributeRequest("jobCode",ProvisioningPlan.Operation.Add,managedAttributes));
+String jobCode=identityModel.get("mySqlDb");
+accReq.add(new AttributeRequest("jobCode",ProvisioningPlan.Operation.Add,jobCode));
 }
  
 accreqs.add(accReq);  
@@ -690,65 +700,88 @@ return plan]]></Source>
   <Step icon="Default" name="JDBC Provision" posX="657" posY="274">
     <Arg name="plan" value="ref:plan"/>
     <Script>
-      <Source><![CDATA[
-import java.sql.*;
+      <Source><![CDATA[import java.sql.*;
 import sailpoint.object.*;
-import saipoint.api
+import saipoint.api.*;
 import sailpoint.connector.Connector;
 import sailpoint.connector.ConnectorFactory;
+import java.lang.*;
+Application app = context.getObject(Application.class,identityModel.get("application"));
+/*
+HashMap map = new HashMap();
+map.put("url",app.getAttributeValue("url"));
+map.put("user", app.getAttributeValue("user"));
+map.put("password", context.decrypt (app.getAttributeValue("password")));
+map.put("driverClass", app.getAttributeValue("driverClass"));
+Connection connection= JdbcUtil.getConnection(map);*/
+String URL = app.getAttributeValue("url");
+String USER = app.getAttributeValue("user");
+String PASS = context.decrypt (app.getAttributeValue("password"));
+Connection connection = DriverManager.getConnection(URL, USER, PASS);
 
-Application application = context.getObjectByName(Application.class, identityModel.get("application"));
-Connector connector = ConnectorFactory.getConnector(application, null);
-//ResourceObject rObj = connector.getObject(objectType, objectGuid, options);
-	  
-List accountRequests = plan.getAccountRequests(identityModel.get("application"));
-System.out.println("1");	  
+String fname;
+String lname;
+String jobCode;
+System.out.println("In JDBC Provision");
+StringBuffer queryBuffer = new StringBuffer();  
+List accountRequests = plan.getAccountRequests(identityModel.get("application"));	  
 for(AccountRequest accRequest: accountRequests){
-System.out.println("2");
 if(AccountRequest.Operation.Create.equals(accRequest.getOperation())){
-System.out.println("3");
 List attributeRequests = accRequest.getAttributeRequests();
 for(AttributeRequest attRequest: attributeRequests){
-System.out.println("4");
 if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
 if (attRequest.getName().equals("First Name")) {
-			String fname = (String)attRequest.getValue();
-			System.out.println("5");
+			fname = (String)attRequest.getValue();
+			System.out.println(fname);
 			}
 if (attRequest.getName().equals("Last Name")) {
-			String lname = (String)attRequest.getValue();
-			System.out.println("6");
+			lname = (String)attRequest.getValue();
+			System.out.println(lname);
 			}			
 }
 }
-PreparedStatement statement = connection.prepareStatement("INSERT INTO workflowdb.workflowtable (User Name,FirstName,LastName) VALUE (?,?,?)");
-System.out.println("7");
-statement.setString(1, plan.getNativeIdentity());
-statement.setString(2, fname);
-statement.setString(3, lname);
-statement.executeUpdate();
+queryBuffer = new StringBuffer();
+queryBuffer.append("Insert into workflowdb.workflowtable (`User Name`,`First Name`,`Last Name`) value(");
+queryBuffer.append("'"+identityModel.get("userName")+"','"+fname+"','"+lname+"')");
 }
-ProvisioningResult result = new ProvisioningResult();
-result.setStatus(ProvisioningResult.STATUS_COMMITTED);
-/*
+
+
 else if(AccountRequest.Operation.Modify.equals(accRequest.getOperation())){
 List attributeRequests = accRequest.getAttributeRequests();
 for(AttributeRequest attRequest: attributeRequests){
 if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
-PreparedStatement statement = connection.prepareStatement(<Insert query>);
-statement.setString(1, plan.getNativeIdentity());
-statement.executeUpdate();
-}
-if(ProvisioningPlan.Operation.Remove.equals(attRequest.getOperation())){
-PreparedStatement statement = connection.prepareStatement(<Delete query>);
-statement.setString(1, plan.getNativeIdentity());
-statement.executeUpdate();
+if (attRequest.getName().equals("jobCode")) {
+			jobCode = (String)attRequest.getValue();
+			System.out.println(jobCode);
+			}			
 }
 }
-result.setStatus(ProvisioningResult.STATUS_COMMITTED);
-}*/
+queryBuffer = new StringBuffer();//UPDATE `workflowdb`.`workflowtable` SET `JobCode` = 'IT' WHERE `User Name` ='
+queryBuffer.append("UPDATE `workflowdb`.`workflowtable` SET `JobCode` = '"+jobCode+"' WHERE `User Name` ='"+identityModel.get("userName")+"'");
 }
-]]></Source>
+else if(AccountRequest.Operation.Disable.equals(accRequest.getOperation())){
+List attributeRequests = accRequest.getAttributeRequests();
+
+queryBuffer = new StringBuffer();
+queryBuffer.append("DELETE FROM `workflowdb`.`workflowtable` WHERE `User Name` ='"+identityModel.get("userName")+"'");
+}
+
+Statement stmt =null;
+		String query = queryBuffer.toString();
+                  System.out.println(query);
+		ProvisioningResult result = new ProvisioningResult();
+		try {
+			stmt = connection.createStatement();
+			stmt.execute(query);
+			result.setStatus(ProvisioningResult.STATUS_COMMITTED);
+		}catch (Exception e) {
+		result.addError(e.getMessage());
+		result.setStatus(ProvisioningResult.STATUS_FAILED);
+		}finally {
+			if (stmt !=null)
+				stmt.close();	
+		}
+}]]></Source>
     </Script>
     <Transition to="EndIR"/>
   </Step>
