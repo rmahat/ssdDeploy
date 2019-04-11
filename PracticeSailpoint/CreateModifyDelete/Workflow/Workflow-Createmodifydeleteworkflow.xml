@@ -1,6 +1,6 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<Workflow  explicitTransitions="true"  libraries="IdentityRequest,Identity"  name="CreateModifyDeleteWorkflow" type="LCMProvisioning">
+<Workflow explicitTransitions="true" libraries="IdentityRequest,Identity" name="CreateModifyDeleteWorkflow" type="LCMProvisioning">
   <Variable editable="true" input="true" name="userName" output="true"/>
   <Variable initializer="true" input="true" name="trace"/>
   <Variable name="identity"/>
@@ -202,64 +202,15 @@
        in &amp;quot;Build Approval Form&amp;quot; based on the passed-in plan.</Description>
   </Variable>
   <Variable name="identityName"/>
+  <Variable name="approverIdentity"/>
   <RuleLibraries>
-    <Reference class="sailpoint.object.Rule" id="4028928167ebfe840167ebfeb69b017c" name="Approval Library"/>
-    <Reference class="sailpoint.object.Rule" id="4028928167ebfe840167ebfeb899018f" name="LCM Workflow Library"/>
+    <Reference class="sailpoint.object.Rule" name="Approval Library"/>
+    <Reference class="sailpoint.object.Rule" name="LCM Workflow Library"/>
   </RuleLibraries>
   <Step icon="Start" name="Start" posX="15" posY="304">
     <Transition to="Initializing"/>
   </Step>
-  <Step icon="Stop" name="Stop" posX="1012" posY="57"/>
-  <Step icon="Default" name="CreatePlan" posX="466" posY="239" resultVariable="plan">
-    <Arg name="project" value="ref:project"/>
-    <Arg name="identityModel" value="ref:identityModel"/>
-    <Arg name="plan" value="ref:plan"/>
-    <Script>
-      <Source>import sailpoint.object.ProvisioningPlan;  
-import sailpoint.object.ProvisioningPlan.AccountRequest;  
-import sailpoint.object.ProvisioningPlan.AttributeRequest;              
-import java.util.List;  
-import java.util.ArrayList;  
-import sailpoint.object.Identity;                        
-import sailpoint.tools.*;
-import sailpoint.api.*;
-import sailpoint.object.*;
-  SailPointContext context= SailPointFactory.getCurrentContext();
-ProvisioningPlan plan = new ProvisioningPlan();      
-String identityName=identityModel.get("identityName");      
-Identity identityObject = context.getObjectByName(Identity.class, identityName);  
-String firstName=identityObject.getAttribute("firstname");
-String lastName=identityObject.getAttribute("lastname");
-String managerName=identityObject.getAttribute("manager");
-String lastNameChange=identityModel.get("lastName");
-String firstNameChange=identityModel.get("firstName");
-String managerNameChange=identityModel.get("manager");
-List accreqs = new ArrayList();                                     
-//create AD account  
-AccountRequest acctReq = new AccountRequest();  
-acctReq.setOperation(AccountRequest.Operation.Modify);  
-acctReq.setApplication("IIQ"); 
-if(!(managerName.equals(managerNameChange) ))
-{
- acctReq.add(new AttributeRequest("manager",managerNameChange)); 
-} 
-if(!(lastName.equals(lastNameChange)))
-{
-acctReq.add(new AttributeRequest("lastname",lastNameChange));  
-}
-if(!(firstName.equals(firstNameChange)))
-{
-acctReq.add(new AttributeRequest("firstname",firstNameChange));  
-}
-acctReq.setNativeIdentity(identityName);  
-accreqs.add(acctReq);  
-plan.setAccountRequests(accreqs);  
-plan.setIdentity(identityObject);
-System.out.println(plan.toXml());
-return plan;</Source>
-    </Script>
-    <Transition to="Build Approval Set"/>
-  </Step>
+  <Step icon="Stop" name="Stop" posX="956" posY="150"/>
   <Step action="getIdentityModel" icon="Analysis" name="Initializing" posX="16" posY="223" resultVariable="identityModel">
     <Transition to="Registration Form"/>
   </Step>
@@ -272,44 +223,44 @@ return plan;</Source>
     </Approval>
     <Transition to="Create Plan">
       <Script>
-        <Source>
+        <Source><![CDATA[
 String op=identityModel.get("operation");
 if ("Create".equals(op)){
 System.out.println("Plan for "+op);
 return true;
-}</Source>
+}]]></Source>
       </Script>
     </Transition>
     <Transition to="Modify Plan">
       <Script>
-        <Source>String op=identityModel.get("operation");
+        <Source><![CDATA[String op=identityModel.get("operation");
 if ("Modify".equals(op)){
 System.out.println("Plan for "+op);
 return true;
-}</Source>
+}]]></Source>
       </Script>
     </Transition>
     <Transition to="Delete Plan">
       <Script>
-        <Source>String op=identityModel.get("operation");
+        <Source><![CDATA[String op=identityModel.get("operation");
 if ("Delete".equals(op)){
 System.out.println("Plan for "+op);
 return true;
-}</Source>
+}]]></Source>
       </Script>
     </Transition>
   </Step>
-  <Step icon="Default" name="NewManager Approval" posX="743" posY="167">
-    <Approval description="Testing" mode="parallel" name="Manager Approval" owner="script:System.out.println(&quot;managerCh&quot;+managerCh);" renderer="lcmEditableWorkItemRenderer.xhtml" return="identityModel,plan,approvalSet" send="identityModel,plan,approvalSet,identityRequestId">
+  <Step icon="Default" name="NewManager Approval" posX="509" posY="147">
+    <Approval description="Testing" mode="serial" name="Manager Approval" owner="script:return approverIdentity;" renderer="lcmEditableWorkItemRenderer.xhtml" return="identityModel,plan,approvalSet" send="identityModel,plan,approvalSet,identityRequestId">
       <Arg name="workItemNotificationTemplate" value="Manager Email for Approval"/>
       <Arg name="workItemRequester" value="1a2b"/>
       <Arg name="launcher" value="ref:launcher"/>
       <Arg name="approvalset" value="ref:approvalSet"/>
       <Arg name="identityName">
         <Script>
-          <Source>import sailpoint.object.Identity;
-String identityName=identityModel.get("identityName");
-return identityName;</Source>
+          <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
         </Script>
       </Arg>
       <Arg name="workItemDescription" value="Account Changes for User"/>
@@ -320,94 +271,53 @@ return identityName;</Source>
       <Arg name="workItemPriority" value="ref:priority"/>
       <Arg name="workItemRequester" value="$(launcher)"/>
       <Arg name="workItemType" value="Approval"/>
+      <Arg name="approverIdentity" value="ref:approverIdentity"/>
       <Arg name="identityRequestId" value="ref:identityRequestId"/>
       <OwnerScript>
-        <Source>import sailpoint.object.Identity;
-import sailpoint.object.ApprovalSet;
-import sailpoint.object.ApprovalItem;
-import sailpoint.object.WorkItem.State;
+        <Source><![CDATA[
+System.out.println("Manager approval Block"+approverIdentity);
+return approverIdentity;
 
-System.out.println("lanuncher" + launcher);
-String managerChange;
-String identityName=identityModel.get("identityName");      
-Identity identityObject = context.getObjectByName(Identity.class, identityName);
-String managerName=identityObject.getAttribute("manager");
-System.out.println("managerName" + managerName);
-String managerNameChange=identityModel.get("manager");
-System.out.println("managerNameChange" + managerNameChange);
-System.out.println(approvalSet.getItems());
-List approvalItems=approvalSet.getItems();
-
-for(ApprovalItem items:approvalItems)
-{
-System.out.println("workitemState"+items.getState());
-System.out.println("workitemState"+items.isApproved());
-System.out.println("workitemState"+items.isComplete());
-System.out.println("workitemState"+items.getOwner());
-}
-if(managerName.equals(launcher))
-{
-System.out.println("11");
-if(managerName.equals(managerNameChange))
-{
-return null;
-}
-else
-{
-return managerNameChange;
-}
-//items.setState(WorkItem.State.Finished);
-}
-else if(managerNameChange.equals(launcher))
-{
-System.out.println("12");
-managerChange=managerName;
-return managerChange;
-}
-
-else
-{
-System.out.println("13");
-managerChange=managerName;
-return managerChange;
-
-}
-</Source>
+]]></Source>
       </OwnerScript>
     </Approval>
     <Transition to="Send New Manager Rejection Email">
       <Script>
-        <Source>System.out.println("approvalStatus"+approvalSet.hasRejected());
+        <Source><![CDATA[System.out.println("approvalStatus"+approvalSet.hasRejected());
 if(approvalSet.hasRejected()==true)
 {
 return true;
 
-}</Source>
+}]]></Source>
       </Script>
     </Transition>
-    <Transition to="OldManager Approval">
+    <Transition to="provision">
       <Script>
-        <Source>
-System.out.println("managerCh"+managerCh);
-if(managerCh.equals("bothManager"))
-{ 
-return true;
-}
-else
+        <Source><![CDATA[System.out.println("approvalStatus"+approvalSet.hasRejected());
+if(approvalSet.hasRejected()==false @and "Dexperts AD Group 13".equals(identityModel.get("application")))
 {
-return false;
-}</Source>
+return true; 
+
+}]]></Source>
       </Script>
     </Transition>
-    <Transition to="provision"/>
+    <Transition to="JDBC Provision">
+      <Script>
+        <Source><![CDATA[String appName=identityModel.get("application");
+String JDBCapp="Dexperts JDBC Group 13"; 
+if(approvalSet.hasRejected()==false @and JDBCapp.equals(identityModel.get("application"))){
+return true;
+}]]></Source>
+      </Script>
+    </Transition>
   </Step>
-  <Step action="call:buildApprovalSet" icon="Default" name="Build Approval Set" posX="467" posY="128" resultVariable="approvalSet">
+  <Step action="call:buildApprovalSet" icon="Default" name="Build Approval Set" posX="230" posY="9" resultVariable="approvalSet">
     <Arg name="plan" value="ref:plan"/>
-    <Transition to="Checking Approval Set"/>
+    <Transition to="Get Identity"/>
   </Step>
-  <Step icon="Default" name="Checking Approval Set" posX="569" posY="134">
+  <Step icon="Default" name="Checking Approval Set" posX="1120" resultVariable="approvalSet">
     <Script>
-      <Source>import sailpoint.object.ProvisioningPlan;
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;
       import sailpoint.object.ProvisioningPlan.AttributeRequest;
       import sailpoint.object.ProvisioningPlan.AccountRequest;
       import sailpoint.object.ApprovalSet;
@@ -436,13 +346,10 @@ return false;
               approvalSet .add(item);
           }
 }
-return approvalSet ;
-
-System.out.println("approvalSet"+approvalSet);</Source>
+return approvalSet ;]]></Source>
     </Script>
-    <Transition to="compile"/>
   </Step>
-  <Step action="call:createIdentityRequest" icon="Task" name="CreateIR" posX="644" posY="34" resultVariable="identityRequest">
+  <Step action="call:createIdentityRequest" icon="Task" name="CreateIR" posX="365" posY="281" resultVariable="identityRequest">
     <Arg name="identityDisplayName" value="ref:identityDisplayName"/>
     <Arg name="approvalSet" value="ref:approvalSet"/>
     <Arg name="project" value="ref:project"/>
@@ -452,124 +359,72 @@ System.out.println("approvalSet"+approvalSet);</Source>
     <Return name="identityRequestId" to="identityRequestId"/>
     <Transition to="Approval Calculation"/>
   </Step>
-  <Step action="compileProvisioningProject" icon="Default" name="compile" posX="684" posY="137" resultVariable="project">
+  <Step action="compileProvisioningProject" icon="Default" name="compile" posX="234" posY="276" resultVariable="project">
     <Arg name="identityName">
       <Script>
-        <Source>import sailpoint.object.Identity;
-String identityName=identityModel.get("identityName");
-return identityName;</Source>
+        <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
       </Script>
     </Arg>
     <Arg name="project" value="ref:project"/>
     <Arg name="plan" value="ref:plan"/>
     <Transition to="CreateIR"/>
   </Step>
-  <Step action="provisionProject" icon="Default" name="provision" posX="845" posY="242">
+  <Step action="provisionProject" icon="Default" name="provision" posX="660" posY="133">
     <Arg name="project" value="ref:project"/>
     <Arg name="plan" value="ref:plan"/>
     <Transition to="EndIR"/>
   </Step>
-  <Step action="call:completeIdentityRequest" icon="Task" name="EndIR" posX="901" posY="296" resultVariable="identityRequest">
+  <Step action="call:completeIdentityRequest" icon="Task" name="EndIR" posX="822" posY="150" resultVariable="identityRequest">
     <Arg name="project" value="ref:project"/>
     <Arg name="identityRequestId" value="ref:identityRequestId"/>
     <Transition to="Stop"/>
   </Step>
-  <Step icon="Default" name="Approval Calculation" posX="774" posY="18" resultVariable="managerCh">
+  <Step icon="Default" name="Approval Calculation" posX="365" posY="135" resultVariable="approverIdentity">
     <Script>
-      <Source>import sailpoint.object.Identity;
+      <Source><![CDATA[import sailpoint.object.*;
 
 System.out.println("lanuncher" + launcher);
-String managerCh;
-String identityName=identityModel.get("identityName");      
+String approverIdentity;
+String identityName=identityModel.get("userName");      
 Identity identityObject = context.getObjectByName(Identity.class, identityName);
-String managerName=identityObject.getAttribute("manager");
-System.out.println("managerName" + managerName);
-String managerNameChange=identityModel.get("manager");
-System.out.println("managerNameChange" + managerNameChange);
-if(managerNameChange.equals(launcher))
-{
-managerCh="oldManager";
+String operation=identityModel.get("operation");
+String application=identityModel.get("application");
+if("Create".equals(operation)){
+Application app =context.getObjectByName(Application.class,application);
+Identity appOwner=app.getOwner();
+approverIdentity=appOwner.getName();
 }
-else if (managerName.equals(launcher))
-{
-managerCh="newManager";
+else if ("Modify".equals(operation) @or "Delete".equals(operation)){
+Identity managerIdentity=identityObject.getManager();
+if (managerIdentity!=null){
+approverIdentity=managerIdentity.getName();
 }
-else if(managerNameChange.equals(managerName))
-{
-managerCh="sameManager";
-}
-else
-{
-managerCh="bothManager";
 }
 
-System.out.println("managerCh in calculating manager"+managerCh);
-return managerCh;</Source>
+return approverIdentity;]]></Source>
     </Script>
     <Transition to="Build Approval Form"/>
   </Step>
-  <Step icon="Default" name="OldManager Approval" posX="674" posY="306">
-    <Approval description="Testing" mode="parallel" name="Old Manager Approval" owner="script:System.out.println(&quot;managerCh&quot;+managerCh);" renderer="lcmWorkItemRenderer.xhtml" return="identityModel,plan,approvalSet" send="identityModel,plan,approvalSet,identityRequestId">
-      <Arg name="workItemNotificationTemplate" value="Access Request Reminder"/>
-      <Arg name="workItemRequester" value="1a2b"/>
-      <Arg name="launcher" value="ref:launcher"/>
-      <Arg name="approvalset" value="ref:approvalSet"/>
-      <Arg name="identityName">
-        <Script>
-          <Source>import sailpoint.object.Identity;
-String identityName=identityModel.get("identityName");
-return identityName;</Source>
-        </Script>
-      </Arg>
-      <Arg name="workItemDescription" value="Account Changes for User:"/>
-      <Arg name="workItemElectronicSignature" value="ref:approverElectronicSignature"/>
-      <Arg name="workItemForm" value="ref:approvalForm"/>
-      <Arg name="workItemIdentityRequestId" value="ref:identityRequestId"/>
-      <Arg name="workItemNotificationTemplate" value="ref:approvalEmailTemplate"/>
-      <Arg name="workItemPriority" value="ref:priority"/>
-      <Arg name="workItemRequester" value="$(launcher)"/>
-      <Arg name="workItemType" value="Approval"/>
-      <Arg name="identityRequestId" value="ref:identityRequestId"/>
-      <OwnerScript>
-        <Source>import sailpoint.object.Identity;
-
-System.out.println("lanuncher" + launcher);
-          String managerNameChange=identityModel.get("manager");
-System.out.println("managerNameChange" + managerNameChange);
-          return managerNameChange;
-          </Source>
-      </OwnerScript>
-    </Approval>
-    <Transition to="Send Old Manager Rejection Email">
-      <Script>
-        <Source>System.out.println("approvalStatus"+approvalSet.hasRejected());
-if(approvalSet.hasRejected()==true)
-{
-return true;
-
-}</Source>
-      </Script>
-    </Transition>
-    <Transition to="provision"/>
-  </Step>
-  <Step action="call:buildPlanApprovalForm" icon="Task" name="Build Approval Form" posX="864" resultVariable="approvalForm">
+  <Step action="call:buildPlanApprovalForm" icon="Task" name="Build Approval Form" posX="359" posY="13" resultVariable="approvalForm">
     <Arg name="template" value="ref:formTemplate"/>
     <Arg name="identityName">
       <Script>
-        <Source>import sailpoint.object.Identity;
-String identityName=identityModel.get("identityName");
-return identityName;</Source>
+        <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
       </Script>
     </Arg>
     <Arg name="plan" value="ref:plan"/>
     <Transition to="Customize Approval Form"/>
   </Step>
-  <Step icon="Analysis" name="Customize Approval Form" posX="609" resultVariable="approvalForm">
+  <Step icon="Analysis" name="Customize Approval Form" posX="508" posY="13" resultVariable="approvalForm">
     <Arg name="identityName">
       <Script>
-        <Source>import sailpoint.object.Identity;
+        <Source><![CDATA[import sailpoint.object.Identity;
 String identityName= identityModel.get("identityName");
-return identityName;</Source>
+return identityName;]]></Source>
       </Script>
     </Arg>
     <Description>
@@ -578,7 +433,7 @@ return identityName;</Source>
        approvals can be validate.
     </Description>
     <Script>
-      <Source>
+      <Source><![CDATA[
         import sailpoint.object.Field;
         import sailpoint.object.Form;
         import sailpoint.object.Rule;
@@ -601,38 +456,22 @@ return identityName;</Source>
             }
         }
         return approvalForm;
-      </Source>
+      ]]></Source>
     </Script>
     <Transition to="NewManager Approval"/>
   </Step>
-  <Step action="sendEmail" icon="Default" name="Send New Manager Rejection Email" posX="889" posY="137">
+  <Step action="sendEmail" icon="Default" name="Send New Manager Rejection Email" posX="647" posY="13">
     <Arg name="template" value="User Rejection Email"/>
     <Arg name="identityName">
       <Script>
-        <Source>String identityName=identityModel.get("identityName"); 
-return identityName;</Source>
+        <Source><![CDATA[String identityName=identityModel.get("identityName"); 
+return identityName;]]></Source>
       </Script>
     </Arg>
     <Arg name="to">
       <Script>
-        <Source>String identityName=identityModel.get("identityName"); 
-return identityName;</Source>
-      </Script>
-    </Arg>
-    <Transition to="EndIR"/>
-  </Step>
-  <Step action="sendEmail" icon="Default" name="Send Old Manager Rejection Email" posX="605" posY="431">
-    <Arg name="template" value="User Rejection Email"/>
-    <Arg name="identityName">
-      <Script>
-        <Source>String identityName=identityModel.get("identityName"); 
-return identityName;</Source>
-      </Script>
-    </Arg>
-    <Arg name="to">
-      <Script>
-        <Source>String identityName=identityModel.get("identityName"); 
-return identityName;</Source>
+        <Source><![CDATA[String identityName=identityModel.get("identityName"); 
+return identityName;]]></Source>
       </Script>
     </Arg>
     <Transition to="EndIR"/>
@@ -642,105 +481,7 @@ return identityName;</Source>
     <Arg name="identityModel" value="ref:identityModel"/>
     <Arg name="plan" value="ref:plan"/>
     <Script>
-      <Source>import sailpoint.object.ProvisioningPlan;  
-import sailpoint.object.ProvisioningPlan.AccountRequest;  
-import sailpoint.object.ProvisioningPlan.AttributeRequest;              
-import java.util.List;  
-import java.util.ArrayList;  
-import sailpoint.object.Identity;                        
-import sailpoint.tools.*;
-import sailpoint.api.*;
-import sailpoint.object.*;
-  SailPointContext context= SailPointFactory.getCurrentContext();
-ProvisioningPlan plan = new ProvisioningPlan();      
-String identityName=identityModel.get("identityName");      
-Identity identityObject = context.getObjectByName(Identity.class, identityName);  
-String firstName=identityObject.getAttribute("firstname");
-String lastName=identityObject.getAttribute("lastname");
-String managerName=identityObject.getAttribute("manager");
-String lastNameChange=identityModel.get("lastName");
-String firstNameChange=identityModel.get("firstName");
-String managerNameChange=identityModel.get("manager");
-List accreqs = new ArrayList();                                     
-//create AD account  
-AccountRequest acctReq = new AccountRequest();  
-acctReq.setOperation(AccountRequest.Operation.Modify);  
-acctReq.setApplication("IIQ"); 
-if(!(managerName.equals(managerNameChange) ))
-{
- acctReq.add(new AttributeRequest("manager",managerNameChange)); 
-} 
-if(!(lastName.equals(lastNameChange)))
-{
-acctReq.add(new AttributeRequest("lastname",lastNameChange));  
-}
-if(!(firstName.equals(firstNameChange)))
-{
-acctReq.add(new AttributeRequest("firstname",firstNameChange));  
-}
-acctReq.setNativeIdentity(identityName);  
-accreqs.add(acctReq);  
-plan.setAccountRequests(accreqs);  
-plan.setIdentity(identityObject);
-System.out.println(plan.toXml());
-return plan</Source>
-    </Script>
-  </Step>
-  <Step icon="Default" name="Modify Plan" posX="138" posY="128" resultVariable="plan">
-    <Arg name="project" value="ref:project"/>
-    <Arg name="identityModel" value="ref:identityModel"/>
-    <Arg name="plan" value="ref:plan"/>
-    <Script>
-      <Source>import sailpoint.object.ProvisioningPlan;  
-import sailpoint.object.ProvisioningPlan.AccountRequest;  
-import sailpoint.object.ProvisioningPlan.AttributeRequest;              
-import java.util.List;  
-import java.util.ArrayList;  
-import sailpoint.object.Identity;                        
-import sailpoint.tools.*;
-import sailpoint.api.*;
-import sailpoint.object.*;
-  SailPointContext context= SailPointFactory.getCurrentContext();
-ProvisioningPlan plan = new ProvisioningPlan();      
-String identityName=identityModel.get("identityName");      
-Identity identityObject = context.getObjectByName(Identity.class, identityName);  
-String firstName=identityObject.getAttribute("firstname");
-String lastName=identityObject.getAttribute("lastname");
-String managerName=identityObject.getAttribute("manager");
-String lastNameChange=identityModel.get("lastName");
-String firstNameChange=identityModel.get("firstName");
-String managerNameChange=identityModel.get("manager");
-List accreqs = new ArrayList();                                     
-//create AD account  
-AccountRequest acctReq = new AccountRequest();  
-acctReq.setOperation(AccountRequest.Operation.Modify);  
-acctReq.setApplication("IIQ"); 
-if(!(managerName.equals(managerNameChange) ))
-{
- acctReq.add(new AttributeRequest("manager",managerNameChange)); 
-} 
-if(!(lastName.equals(lastNameChange)))
-{
-acctReq.add(new AttributeRequest("lastname",lastNameChange));  
-}
-if(!(firstName.equals(firstNameChange)))
-{
-acctReq.add(new AttributeRequest("firstname",firstNameChange));  
-}
-acctReq.setNativeIdentity(identityName);  
-accreqs.add(acctReq);  
-plan.setAccountRequests(accreqs);  
-plan.setIdentity(identityObject);
-System.out.println(plan.toXml());
-return plan</Source>
-    </Script>
-  </Step>
-  <Step icon="Default" name="Create Plan" posX="83" resultVariable="plan">
-    <Arg name="project" value="ref:project"/>
-    <Arg name="identityModel" value="ref:identityModel"/>
-    <Arg name="plan" value="ref:plan"/>
-    <Script>
-      <Source>import sailpoint.object.ProvisioningPlan;  
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
 import sailpoint.object.ProvisioningPlan.AccountRequest;  
 import sailpoint.object.ProvisioningPlan.AttributeRequest;              
 import java.util.List;  
@@ -761,13 +502,170 @@ String lastName=identityObject.getAttribute("lastname");
 String managerName=identityObject.getAttribute("manager");
 List accreqs = new ArrayList();                                     
 //create AD account  
-AccountRequest acctReq = new AccountRequest();  
-acctReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Create);  
-acctReq.setApplication(appName); 
+AccountRequest accReq = new AccountRequest();   
+accReq.setApplication(appName); 
+//Plan for AD Application
+
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links )//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
+
+ 
+accreqs.add(accReq);  
+plan.setAccountRequests(accreqs);  
+plan.setIdentity(identityObject);
+System.out.println(plan.toXml());
+return plan]]></Source>
+    </Script>
+    <Transition to="Build Approval Set"/>
+  </Step>
+  <Step icon="Default" name="Modify Plan" posX="138" posY="128" resultVariable="plan">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
+import sailpoint.object.ProvisioningPlan.AccountRequest;  
+import sailpoint.object.ProvisioningPlan.AttributeRequest;              
+import java.util.List;  
+import java.util.ArrayList;  
+import sailpoint.object.Identity;                        
+import sailpoint.tools.*;
+import sailpoint.api.*;
+import sailpoint.object.*;
+  SailPointContext context= SailPointFactory.getCurrentContext();
+String appName=identityModel.get("application");
+String ADapp="Dexperts AD Group 13";
+String JDBCapp="Dexperts JDBC Group 13";  
+ProvisioningPlan plan = new ProvisioningPlan();      
+String identityName=identityModel.get("userName");
+String newOU=identityModel.get("ou");
+String newGroup=identityModel.get("adGroup"); 
+String modifyOUgroup=identityModel.get("mopug");       
+Identity identityObject = context.getObjectByName(Identity.class, identityName);  
+String firstName=identityObject.getAttribute("firstname");
+String lastName=identityObject.getAttribute("lastname");
+String managerName=identityObject.getAttribute("manager");
+List accreqs = new ArrayList();                                     
+//create AD account  
+AccountRequest accReq = new AccountRequest();  
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Modify);  
+accReq.setApplication(appName); 
+if (ADapp.equals(appName)){
+//Plan for AD Application
+
+if("Modify Group".equals(modifyOUgroup)){
+//Work for adding in the group
+
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links )//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+
+String managedAttributes="CN="+newGroup+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+//CN=HrGroup,OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local
+//
+accReq.add(new AttributeRequest("memberOf",ProvisioningPlan.Operation.Add,managedAttributes));
+}
+else if("Modify OU".equals(modifyOUgroup)){
+//Work for OU moving
+
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links )//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+String dn="CN="+identityName+",OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+String dnPath="OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+accReq.setNativeIdentity(dn);
+System.out.println(dn);
+accReq.add(new AttributeRequest("AC_NewParent",ProvisioningPlan.Operation.Set,dnPath));//ProvisioningPlan.Operation.Set,
+
+}
+}
+else if (JDBCapp.equals(appName))
+{
+//Plan for JDBC Application
+accReq.setNativeIdentity(identityName);
+accReq.add(new AttributeRequest("jobCode",ProvisioningPlan.Operation.Add,managedAttributes));
+}
+ 
+accreqs.add(accReq);  
+plan.setAccountRequests(accreqs);  
+plan.setIdentity(identityObject);
+System.out.println(plan.toXml());
+return plan]]></Source>
+    </Script>
+    <Transition to="Build Approval Set"/>
+  </Step>
+  <Step icon="Default" name="Create Plan" posX="83" resultVariable="plan">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
+import sailpoint.object.ProvisioningPlan.AccountRequest;  
+import sailpoint.object.ProvisioningPlan.AttributeRequest;              
+import java.util.List;  
+import java.util.ArrayList;  
+import sailpoint.object.Identity;                        
+import sailpoint.tools.*;
+import sailpoint.api.*;
+import sailpoint.object.*;
+  SailPointContext context= SailPointFactory.getCurrentContext();
+String appName=identityModel.get("application");
+String ADapp="Dexperts AD Group 13";
+String JDBCapp="Dexperts JDBC Group 13";  
+ProvisioningPlan plan = new ProvisioningPlan();      
+String identityName=identityModel.get("userName");      
+Identity identityObject = context.getObjectByName(Identity.class, identityName);  
+String firstName=identityObject.getAttribute("firstname");
+String lastName=identityObject.getAttribute("lastname");
+String managerName=identityObject.getAttribute("manager");
+List accreqs = new ArrayList();                                     
+//create AD account  
+AccountRequest accReq = new AccountRequest();  
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Create);  
+accReq.setApplication(appName); 
 if (ADapp.equals(appName)){
 //Plan for AD Application
 String dn="CN="+identityName+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
-acctReq.setNativeIdentity(dn);
+accReq.setNativeIdentity(dn);
 accReq.add(new AttributeRequest("samAccountName",ProvisioningPlan.Operation.Set,identityName));
 accReq.add(new AttributeRequest("password",ProvisioningPlan.Operation.Add,"nepal123!"));
 accReq.add(new AttributeRequest("distinguishedName",ProvisioningPlan.Operation.Set,dn));
@@ -775,22 +673,91 @@ accReq.add(new AttributeRequest("distinguishedName",ProvisioningPlan.Operation.S
 else if (JDBCapp.equals(appName))
 {
 //Plan for JDBC Application
-acctReq.setNativeIdentity(identityName);
-accReq.add(new AttributeRequest("employeeId",ProvisioningPlan.Operation.Set,"e2"));
-accReq.add(new AttributeRequest("userName",ProvisioningPlan.Operation.Set,identityName));
-accReq.add(new AttributeRequest("firstName",ProvisioningPlan.Operation.Set,firstName));
-accReq.add(new AttributeRequest("lastName",ProvisioningPlan.Operation.Set,lastName));
+accReq.setNativeIdentity(identityName);
+//accReq.add(new AttributeRequest("User Name",ProvisioningPlan.Operation.Add,identityName));
+accReq.add(new AttributeRequest("First Name",ProvisioningPlan.Operation.Add,firstName));
+accReq.add(new AttributeRequest("Last Name",ProvisioningPlan.Operation.Add,lastName));
 }
  
-accreqs.add(acctReq);  
+accreqs.add(accReq);  
 plan.setAccountRequests(accreqs);  
 plan.setIdentity(identityObject);
 System.out.println(plan.toXml());
-return plan</Source>
+return plan]]></Source>
     </Script>
+    <Transition to="Build Approval Set"/>
   </Step>
-  <Step icon="Stop" name="End" posX="1077" posY="172"/>
-  <Step icon="Default" name="Delete Initial Value Calculation" posX="233" posY="259"/>
-  <Step icon="Default" name="Modify Initial Value Calculation" posX="236" posY="117"/>
-  <Step icon="Default" name="Create Initial Value Calculation" posX="241" posY="23"/>
+  <Step icon="Default" name="JDBC Provision" posX="657" posY="274">
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[
+import java.sql.*;
+import sailpoint.object.*;
+import saipoint.api
+import sailpoint.connector.Connector;
+import sailpoint.connector.ConnectorFactory;
+
+Application application = context.getObjectByName(Application.class, identityModel.get("application"));
+Connector connector = ConnectorFactory.getConnector(application, null);
+//ResourceObject rObj = connector.getObject(objectType, objectGuid, options);
+	  
+List accountRequests = plan.getAccountRequests(identityModel.get("application"));
+System.out.println("1");	  
+for(AccountRequest accRequest: accountRequests){
+System.out.println("2");
+if(AccountRequest.Operation.Create.equals(accRequest.getOperation())){
+System.out.println("3");
+List attributeRequests = accRequest.getAttributeRequests();
+for(AttributeRequest attRequest: attributeRequests){
+System.out.println("4");
+if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
+if (attRequest.getName().equals("First Name")) {
+			String fname = (String)attRequest.getValue();
+			System.out.println("5");
+			}
+if (attRequest.getName().equals("Last Name")) {
+			String lname = (String)attRequest.getValue();
+			System.out.println("6");
+			}			
+}
+}
+PreparedStatement statement = connection.prepareStatement("INSERT INTO workflowdb.workflowtable (User Name,FirstName,LastName) VALUE (?,?,?)");
+System.out.println("7");
+statement.setString(1, plan.getNativeIdentity());
+statement.setString(2, fname);
+statement.setString(3, lname);
+statement.executeUpdate();
+}
+ProvisioningResult result = new ProvisioningResult();
+result.setStatus(ProvisioningResult.STATUS_COMMITTED);
+/*
+else if(AccountRequest.Operation.Modify.equals(accRequest.getOperation())){
+List attributeRequests = accRequest.getAttributeRequests();
+for(AttributeRequest attRequest: attributeRequests){
+if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
+PreparedStatement statement = connection.prepareStatement(<Insert query>);
+statement.setString(1, plan.getNativeIdentity());
+statement.executeUpdate();
+}
+if(ProvisioningPlan.Operation.Remove.equals(attRequest.getOperation())){
+PreparedStatement statement = connection.prepareStatement(<Delete query>);
+statement.setString(1, plan.getNativeIdentity());
+statement.executeUpdate();
+}
+}
+result.setStatus(ProvisioningResult.STATUS_COMMITTED);
+}*/
+}
+]]></Source>
+    </Script>
+    <Transition to="EndIR"/>
+  </Step>
+  <Step icon="Default" name="Get Identity" posX="228" posY="88" resultVariable="identityName">
+    <Script>
+      <Source><![CDATA[import sailpoint.object.*;
+String identityName=identityModel.get("userName"); 
+return identityName;]]></Source>
+    </Script>
+    <Transition to="compile"/>
+  </Step>
 </Workflow>

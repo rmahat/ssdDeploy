@@ -1,7 +1,7 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<Rule language="beanshell"  name="CreateModifyDelete Rules Library" type="FieldValue">
-<Signature returnType="Map">
+<Rule language="beanshell" name="CreateModifyDelete Rules Library" type="FieldValue">
+  <Signature returnType="Map">
     <Inputs>
       <Argument name="log">
         <Description>  
@@ -15,12 +15,12 @@
       </Argument>
     </Inputs>
   </Signature>
-
-  <Source>
+  <Source><![CDATA[
 	import sailpoint.api.SailPointFactory;
 	import sailpoint.api.SailPointContext;
 	import sailpoint.api.Provisioner;
 	import sailpoint.object.*;
+	import sailpoint.api.*;
 	import sailpoint.object.ProvisioningPlan.AttributeRequest;
 	import sailpoint.object.ProvisioningPlan.AccountRequest;
     import sailpoint.object.ProvisioningPlan.Operation; 
@@ -70,6 +70,19 @@
 		  return bolval;
 	}
 	
+	
+	public String getADparam(String applicationName,Identity identityObject, String param){
+  Application appObject = context.getObjectByName(Application.class, applicationName);
+  String retVal;
+   // String appConnName = appObject.getConnector();
+    IdentityService is = new IdentityService(context);
+    List links = is.getLinks(identityObject,appObject);
+    for(Link link : links)
+    {     //loops through all identities links for My Application Name 
+      retVal = link.getAttribute(param);
+    }	  
+		  return retVal;
+	}
 	
 	
 	public boolean isADuserAlready(Identity identity,String appName){
@@ -212,7 +225,7 @@
 		List templates = app.getTemplates();
 		Template updateTemp = null;
 		
-		if (templates != null &amp;&amp; templates.size() > 0){
+		if (templates != null && templates.size() > 0){
 			logger.trace("loop the templates");
 			
 			for (Template temp : templates){
@@ -228,7 +241,7 @@
 			
 				List fields = updateTemp.getFields();
 				
-				if (fields != null &amp;&amp; fields.size() > 0){
+				if (fields != null && fields.size() > 0){
 					for (Field field : fields){
 						logger.trace("Get field name");
 						String fieldName = field.getName();
@@ -286,5 +299,5 @@ public boolean isUserAlready(Identity identity){
 */
 	
 	
-	</Source>
+	]]></Source>
 </Rule>

@@ -40,9 +40,9 @@
 				 Identity testIdentity=context.getObjectByName(Identity.class,userName);
 				 String name=testIdentity.getName();
 				 System.out.println(name);
-					if (isUserAlready(testIdentity)) {
+					if ("Create".equals(value) @and isADuserAlready(testIdentity,application)) {
 					
-					return "Value must be less than or equal to 10";
+					return "The "+application+" for "+name+" already Exist. Choose other operation";
 					}
 					else
 					return null;
@@ -109,7 +109,11 @@
               </Value>
             </AllowedValuesDefinition>
     </Field>
-		 <Field displayName="Choose SQL DB" dynamic="true" filterString="" name="mySqlDb" type="string">
+		 <Field displayName="Choose New Job Code" dynamic="true" filterString="" name="mySqlDb" type="string">
+		 <RuleRef>
+		 <Reference class="sailpoint.object.Rule"  name="CreateModifyDelete Rules Library"/>
+		 </RuleRef>
+		 
 		 <Attributes>
 			<Map>
 				<entry key="hidden">
@@ -130,13 +134,11 @@
 		</Attributes>
      <AllowedValuesDefinition>
               <Value>
-                <List>
-                  <String>Employee ID</String>
-                  <String>User Name</String>
-				  <String>First Name</String>
-				  <String>Last Name</String>
-				  
-                </List>
+			 <List>
+			 <String>Developer</String>
+			 <String>IT</String>
+			 <String>HR</String>
+			 </List>
               </Value>
             </AllowedValuesDefinition>
     </Field>
