@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Workflow PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Workflow explicitTransitions="true" libraries="IdentityRequest,Identity" name="CreateModifyDeleteWorkflow" type="LCMProvisioning">
+  <Variable editable="true" input="true" name="userName" output="true"/>
+  <Variable initializer="true" input="true" name="trace"/>
+  <Variable name="identity"/>
+  <Variable editable="true" initializer="true" input="true" name="approved" output="true"/>
+  <Variable input="true" name="launcher" output="true"/>
+  <Variable input="true" name="plan" output="true"/>
+  <Variable input="true" name="identityName" output="true"/>
+  <Variable input="true" name="user" output="true"/>
+  <Variable input="true" name="identityModel" output="true"/>
+  <Variable input="true" name="project" output="true"/>
+  <Variable initializer="true" input="true" name="transient" output="true"/>
+  <Variable input="true" name="approvalSet" output="true"/>
+  <Variable name="launcher"/>
+  <Variable input="true" name="identityRequestId" output="true"/>
+  <Variable name="approvalForm">
+    <Description>The generated form that is displayed to the user during the approval.</Description>
+  </Variable>
+  <Variable initializer="spadmin" input="true" name="fallbackApprover" required="true">
+    <Description>A String that specifies the name of the Identity that will
+      be assigned any manual actions  where the owner of the approver
+      can&amp;#39;t be resolved.</Description>
+  </Variable>
+  <Variable initializer="serial" input="true" name="approvalMode">
+    <Description>A string that specifies how we should handle the approvals.
+
+     By default this is serial since most of these request with
+     the exception of manager transfers will have only one approver.
+
+     parallel
+       Approvals are processed concurrently and there must be consensus,
+       we wait for all approvers to approve.  The first approver that
+       rejects terminates the entire approval.
+
+     parallelPoll
+       Approvals are processed concurrently but consensus is not required.
+       All approvals will be process, we don&amp;#39;t stop if there any
+       rejections.
+
+     serial
+       Approvals are processed one at a time and there must be consensus.
+       The first approver that rejects terminates the entire approval.
+
+     serialPoll
+       Approvals are processed in order but consensus is not required.
+       All approvals will be processed, we don&amp;#39;t stop if there are any
+       rejections.  In effect we are &amp;quot;taking a poll&amp;quot; of the approvers.
+
+     any
+      Approvals are processed concurrently, the first approver to
+      respond makes the decision for the group.</Description>
+  </Variable>
+  <Variable input="true" name="priority">
+    <Description>String version of WorkItem.level that will be used
+      to set the priority of any generated approval
+      workitems.</Description>
+  </Variable>
+  <Variable input="true" name="flow">
+    <Description>The name of the LCM flow that launched this workflow.
+
+      This is one of these two values:
+
+      IdentityCreateRequest
+      IdentityEditRequest</Description>
+  </Variable>
+  <Variable editable="true" name="optimisticProvisioning">
+    <Description>Set to true to enable optimistic provisioning.  This will cause
+      changes to the entitlements compiled from role assignments to be
+      applied immediately to the identity cube rather than waiting
+      for the next refresh/reaggregation after the provisioning system
+      completes the request.</Description>
+  </Variable>
+  <Variable editable="true" initializer="true" name="foregroundProvisioning">
+    <Description>Normally provisioning is done in a step that uses the &amp;quot;background&amp;quot;
+      option to force the workflow to be suspend and be resumed in a
+      background task thread.  This prevents the browser session from
+      hanging since provision can sometimes take a long time.  For demos
+      and testing it can be better to do this in the foreground so that
+      provisioning will have been performed when control is returned to the
+      user.  This prevents having to run the Perform Maintenance task to
+      see the results of the request.</Description>
+  </Variable>
+  <Variable editable="true" name="doRefresh">
+    <Description>Set to true to cause an identity refresh after the changes in the plan
+      have been provisioned.  This is normally off, you might want this on
+      if you want modification of identity or link attributes to result in
+      an immediate re-evaluation of assigned and detected roles.</Description>
+  </Variable>
+  <Variable initializer="Normal" input="true" name="workItemPriority">
+    <Description>The String version of a WorkItem.Priority. This variable is
+       used to set the priority on all of the workitems generated
+       as part of this workflow and also set on the IdentityRequest
+       object.</Description>
+  </Variable>
+  <Variable initializer="user,requester" input="true" name="notificationScheme">
+    <Description>A string that specifies who should be notified when the request has been complete.
+     The value can be null or a csv of one or more of the following options.
+
+     none or null
+       disable notifications
+
+     user
+       Identity that is being update will be notified.
+
+     manager
+       The manager of the Identity that is being updated will be notified.
+
+     requester
+       The person that has requested the update will be notified.</Description>
+  </Variable>
+  <Variable initializer="LCM User Notification" input="true" name="userEmailTemplate">
+    <Description>The email template to use for user notification.</Description>
+  </Variable>
+  <Variable initializer="LCM Requester Notification" input="true" name="requesterEmailTemplate">
+    <Description>The email template to use for requester notification.</Description>
+  </Variable>
+  <Variable initializer="LCM Manager Notification" input="true" name="managerEmailTemplate">
+    <Description>The email template to use for manager notification.</Description>
+  </Variable>
+  <Variable input="true" name="securityOfficerEmailTemplate">
+    <Description>The email template to use for security officer notification.</Description>
+  </Variable>
+  <Variable initializer="serial" input="true" name="approvalMode">
+    <Description>A string that specifies how we should handle the approvals.
+
+     By default this is serial since most of these request with
+     the exception of manager transfers will have only one approver.
+
+     parallel
+       Approvals are processed concurrently and there must be consensus,
+       we wait for all approvers to approve.  The first approver that
+       rejects terminates the entire approval.
+
+     parallelPoll
+       Approvals are processed concurrently but consensus is not required.
+       All approvals will be process, we don&amp;#39;t stop if there any
+       rejections.
+
+     serial
+       Approvals are processed one at a time and there must be consensus.
+       The first approver that rejects terminates the entire approval.
+
+     serialPoll
+       Approvals are processed in order but consensus is not required.
+       All approvals will be processed, we don&amp;#39;t stop if there are any
+       rejections.  In effect we are &amp;quot;taking a poll&amp;quot; of the approvers.
+
+     any
+      Approvals are processed concurrently, the first approver to
+      respond makes the decision for the group.</Description>
+  </Variable>
+  <Variable initializer="manager, newManager" input="true" name="approvalScheme">
+    <Description>A String that specifies how approvals should be generated for
+      this workflow there are three built-in modes
+
+      none - disabled approvals
+
+      manager - The user&amp;#39;s current manager will get approvals
+
+      newManager - The newly assigned manager will get approvals when
+                   manager transfers occur. Otherwise the user&amp;#39;s manager
+                   current manager will be the approver.</Description>
+  </Variable>
+  <Variable initializer="spadmin" input="true" name="fallbackApprover">
+    <Description>A String that specifies the name of the Identity that will
+      be assigned any approvals where the owner of the approver
+      can&amp;#39;t be resolved. Example if the scheme is &amp;quot;owner&amp;quot; and the
+      application doesn&amp;#39;t specify and owner.</Description>
+  </Variable>
+  <Variable initializer="LCM Identity Update Approval" input="true" name="approvalEmailTemplate">
+    <Description>The email template to use for approval notifications.</Description>
+  </Variable>
+  <Variable input="true" name="securityOfficerName">
+    <Description>The name of the identity that will be sent approvals
+       during security officer approvals.</Description>
+  </Variable>
+  <Variable initializer="continue" input="true" name="policyScheme">
+    <Description>A String that specifies how policy checks effect the overall
+      process.
+
+      none - disabled policy checking
+
+      fail -  fail and exit the workflow if any policy violations are found
+
+      continue -  continue if policy violations are found</Description>
+  </Variable>
+  <Variable input="true" name="ticketManagementApplication">
+    <Description>Name of the application that can handle ticket requests.
+      When non-null the Manage Ticket Steps will be visited to open
+      tickets during the workflow lifecycle.</Description>
+  </Variable>
+  <Variable initializer="LCM" input="true" name="source">
+    <Description>String version of sailpoint.object.Source to indicate
+      where the request originated.  Defaults to LCM.</Description>
+  </Variable>
+  <Variable name="approvalForm">
+    <Description>The form that is generated based on the changes that were made.  This
+       form will be sent into the workitem and allow editing of the
+       requested values during the approval process. This is generated
+       in &amp;quot;Build Approval Form&amp;quot; based on the passed-in plan.</Description>
+  </Variable>
+  <Variable name="identityName"/>
+  <Variable name="approverIdentity"/>
+  <RuleLibraries>
+    <Reference class="sailpoint.object.Rule" name="Approval Library"/>
+    <Reference class="sailpoint.object.Rule" name="LCM Workflow Library"/>
+  </RuleLibraries>
+  <Step icon="Start" name="Start" posX="15" posY="304">
+    <Transition to="Initializing"/>
+  </Step>
+  <Step icon="Stop" name="Stop" posX="956" posY="150"/>
+  <Step action="getIdentityModel" icon="Analysis" name="Initializing" posX="16" posY="223" resultVariable="identityModel">
+    <Transition to="Registration Form"/>
+  </Step>
+  <Step icon="Approval" name="Registration Form" posX="18" posY="135">
+    <Approval mode="serial" name="Registration Form" owner="ref:launcher" return="identityModel">
+      <Arg name="workItemType" value="Form"/>
+      <Arg name="workItemDescription" value="User Form"/>
+      <Arg name="workItemForm" value="CreateModifyDeleteForm"/>
+      <Arg name="workItemFormBasePath" value="identityModel"/>
+    </Approval>
+    <Transition to="Create Plan">
+      <Script>
+        <Source><![CDATA[
+String op=identityModel.get("operation");
+if ("Create".equals(op)){
+System.out.println("Plan for "+op);
+return true;
+}]]></Source>
+      </Script>
+    </Transition>
+    <Transition to="Modify Plan">
+      <Script>
+        <Source><![CDATA[String op=identityModel.get("operation");
+if ("Modify".equals(op)){
+System.out.println("Plan for "+op);
+return true;
+}]]></Source>
+      </Script>
+    </Transition>
+    <Transition to="Delete Plan">
+      <Script>
+        <Source><![CDATA[String op=identityModel.get("operation");
+if ("Delete".equals(op)){
+System.out.println("Plan for "+op);
+return true;
+}]]></Source>
+      </Script>
+    </Transition>
+  </Step>
+  <Step icon="Default" name="NewManager Approval" posX="509" posY="147">
+    <Approval description="Testing" mode="serial" name="Manager Approval" owner="script:return approverIdentity;" renderer="lcmEditableWorkItemRenderer.xhtml" return="identityModel,plan,approvalSet" send="identityModel,plan,approvalSet,identityRequestId">
+      <Arg name="workItemNotificationTemplate" value="Manager Email for Approval"/>
+      <Arg name="workItemRequester" value="1a2b"/>
+      <Arg name="launcher" value="ref:launcher"/>
+      <Arg name="approvalset" value="ref:approvalSet"/>
+      <Arg name="identityName">
+        <Script>
+          <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
+        </Script>
+      </Arg>
+      <Arg name="workItemDescription" value="Account Changes for User"/>
+      <Arg name="workItemElectronicSignature" value="ref:approverElectronicSignature"/>
+      <Arg name="workItemForm" value="ref:approvalForm"/>
+      <Arg name="workItemIdentityRequestId" value="ref:identityRequestId"/>
+      <Arg name="workItemNotificationTemplate" value="ref:approvalEmailTemplate"/>
+      <Arg name="workItemPriority" value="ref:priority"/>
+      <Arg name="workItemRequester" value="$(launcher)"/>
+      <Arg name="workItemType" value="Approval"/>
+      <Arg name="approverIdentity" value="ref:approverIdentity"/>
+      <Arg name="identityRequestId" value="ref:identityRequestId"/>
+      <OwnerScript>
+        <Source><![CDATA[
+System.out.println("Manager approval Block"+approverIdentity);
+return approverIdentity;
+
+]]></Source>
+      </OwnerScript>
+    </Approval>
+    <Transition to="Send New Manager Rejection Email">
+      <Script>
+        <Source><![CDATA[System.out.println("approvalStatus"+approvalSet.hasRejected());
+if(approvalSet.hasRejected()==true)
+{
+return true;
+
+}]]></Source>
+      </Script>
+    </Transition>
+    <Transition to="provision">
+      <Script>
+        <Source><![CDATA[System.out.println("approvalStatus"+approvalSet.hasRejected());
+if(approvalSet.hasRejected()==false @and "Dexperts AD Group 13".equals(identityModel.get("application")))
+{
+return true; 
+
+}]]></Source>
+      </Script>
+    </Transition>
+    <Transition to="JDBC Provision">
+      <Script>
+        <Source><![CDATA[String appName=identityModel.get("application");
+String JDBCapp="Dexperts JDBC Group 13"; 
+if(approvalSet.hasRejected()==false @and JDBCapp.equals(identityModel.get("application"))){
+return true;
+}]]></Source>
+      </Script>
+    </Transition>
+  </Step>
+  <Step action="call:buildApprovalSet" icon="Default" name="Build Approval Set" posX="230" posY="9" resultVariable="approvalSet">
+    <Arg name="plan" value="ref:plan"/>
+    <Transition to="Get Identity"/>
+  </Step>
+  <Step icon="Default" name="Checking Approval Set" posX="1120" resultVariable="approvalSet">
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;
+      import sailpoint.object.ProvisioningPlan.AttributeRequest;
+      import sailpoint.object.ProvisioningPlan.AccountRequest;
+      import sailpoint.object.ApprovalSet;
+      import sailpoint.object.ApprovalItem;
+      import sailpoint.object.Attributes;
+      import sailpoint.tools.Util;
+
+      ApprovalSet approvalSet = new ApprovalSet();
+      if ( plan != null ) {
+          List accountRequests = plan.getAccountRequests();
+          for ( AccountRequest request : accountRequests ) {
+              ApprovalItem item = new ApprovalItem();
+              item.setApplication(request.getApplication());
+              item.setInstance(request.getInstance());
+              item.setNativeIdentity(request.getNativeIdentity());
+              item.setOperation(request.getOperation().toString());
+              List attrRequestFlat = flattenAttributeRequests(request.getAttributeRequests());
+              if ( attrRequestFlat != null ) {
+                  item.setValue(attrRequestFlat);
+              } 
+              Attributes attributes = getAttributeRequestArguments(request.getAttributeRequests());
+              item.setAttributes(attributes);
+              
+             
+             
+              approvalSet .add(item);
+          }
+}
+return approvalSet ;]]></Source>
+    </Script>
+  </Step>
+  <Step action="call:createIdentityRequest" icon="Task" name="CreateIR" posX="365" posY="281" resultVariable="identityRequest">
+    <Arg name="identityDisplayName" value="ref:identityDisplayName"/>
+    <Arg name="approvalSet" value="ref:approvalSet"/>
+    <Arg name="project" value="ref:project"/>
+    <Arg name="source" value="UI"/>
+    <Arg name="priority" value="Normal"/>
+    <Arg name="flow" value="EntitlementsRequest"/>
+    <Return name="identityRequestId" to="identityRequestId"/>
+    <Transition to="Approval Calculation"/>
+  </Step>
+  <Step action="compileProvisioningProject" icon="Default" name="compile" posX="234" posY="276" resultVariable="project">
+    <Arg name="identityName">
+      <Script>
+        <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
+      </Script>
+    </Arg>
+    <Arg name="project" value="ref:project"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Transition to="CreateIR"/>
+  </Step>
+  <Step action="provisionProject" icon="Default" name="provision" posX="660" posY="133">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Transition to="EndIR"/>
+  </Step>
+  <Step action="call:completeIdentityRequest" icon="Task" name="EndIR" posX="857" posY="144" resultVariable="identityRequest">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityRequestId" value="ref:identityRequestId"/>
+    <Transition to="Stop"/>
+  </Step>
+  <Step icon="Default" name="Approval Calculation" posX="365" posY="135" resultVariable="approverIdentity">
+    <Script>
+      <Source><![CDATA[import sailpoint.object.*;
+
+System.out.println("lanuncher" + launcher);
+String approverIdentity;
+String identityName=identityModel.get("userName");      
+Identity identityObject = context.getObjectByName(Identity.class, identityName);
+String operation=identityModel.get("operation");
+String application=identityModel.get("application");
+if("Create".equals(operation)){
+Application app =context.getObjectByName(Application.class,application);
+Identity appOwner=app.getOwner();
+approverIdentity=appOwner.getName();
+}
+else if ("Modify".equals(operation) @or "Delete".equals(operation)){
+Identity managerIdentity=identityObject.getManager();
+if (managerIdentity!=null){
+approverIdentity=managerIdentity.getName();
+}
+}
+
+return approverIdentity;]]></Source>
+    </Script>
+    <Transition to="Build Approval Form"/>
+  </Step>
+  <Step action="call:buildPlanApprovalForm" icon="Task" name="Build Approval Form" posX="359" posY="13" resultVariable="approvalForm">
+    <Arg name="template" value="ref:formTemplate"/>
+    <Arg name="identityName">
+      <Script>
+        <Source><![CDATA[import sailpoint.object.Identity;
+String identityName=identityModel.get("userName");
+return identityName;]]></Source>
+      </Script>
+    </Arg>
+    <Arg name="plan" value="ref:plan"/>
+    <Transition to="Customize Approval Form"/>
+  </Step>
+  <Step icon="Analysis" name="Customize Approval Form" posX="508" posY="13" resultVariable="approvalForm">
+    <Arg name="identityName">
+      <Script>
+        <Source><![CDATA[import sailpoint.object.Identity;
+String identityName= identityModel.get("identityName");
+return identityName;]]></Source>
+      </Script>
+    </Arg>
+    <Description>
+       using the form that was generaed, mMrk the password field read only so approvers
+       can't change it.  Also associate a Rule with the name so name changes during
+       approvals can be validate.
+    </Description>
+    <Script>
+      <Source><![CDATA[
+        import sailpoint.object.Field;
+        import sailpoint.object.Form;
+        import sailpoint.object.Rule;
+        import sailpoint.object.Configuration;
+        import sailpoint.tools.Util;
+
+        if ( approvalForm != null ) {
+            Field identityName= approvalForm.getField("identityName");
+            if ( identityName!= null ) {
+                identityName.setReadOnly(true);
+
+               
+            }
+           
+            Field manager = approvalForm.getField("IIQ:manager");
+            if ( manager != null ) {
+                // tell the FormBean to output the value as a name
+                // instead of ID which is the default
+                manager.addAttribute(Field.ATTR_VALUE_PROPERTY, "name");
+            }
+        }
+        return approvalForm;
+      ]]></Source>
+    </Script>
+    <Transition to="NewManager Approval"/>
+  </Step>
+  <Step action="sendEmail" icon="Default" name="Send New Manager Rejection Email" posX="647" posY="13">
+    <Arg name="template" value="User Rejection Email"/>
+    <Arg name="identityName">
+      <Script>
+        <Source><![CDATA[String identityName=identityModel.get("identityName"); 
+return identityName;]]></Source>
+      </Script>
+    </Arg>
+    <Arg name="to">
+      <Script>
+        <Source><![CDATA[String identityName=identityModel.get("identityName"); 
+return identityName;]]></Source>
+      </Script>
+    </Arg>
+    <Transition to="EndIR"/>
+  </Step>
+  <Step icon="Default" name="Delete Plan" posX="81" posY="306" resultVariable="plan">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
+import sailpoint.object.ProvisioningPlan.AccountRequest;  
+import sailpoint.object.ProvisioningPlan.AttributeRequest;              
+import java.util.List;  
+import java.util.ArrayList;  
+import sailpoint.object.Identity;                        
+import sailpoint.tools.*;
+import sailpoint.api.*;
+import sailpoint.object.*;
+  SailPointContext context= SailPointFactory.getCurrentContext();
+String appName=identityModel.get("application");
+String ADapp="Dexperts AD Group 13";
+String JDBCapp="Dexperts JDBC Group 13";  
+ProvisioningPlan plan = new ProvisioningPlan();      
+String identityName=identityModel.get("userName");      
+Identity identityObject = context.getObjectByName(Identity.class, identityName);  
+String firstName=identityObject.getAttribute("firstname");
+String lastName=identityObject.getAttribute("lastname");
+String managerName=identityObject.getAttribute("manager");
+List accreqs = new ArrayList();                                     
+//create AD account  
+AccountRequest accReq = new AccountRequest();   
+accReq.setApplication(appName); 
+//Plan for AD Application
+
+
+if (ADapp.equals(appName)){
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links)//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
+}
+else if (JDBCapp.equals(appName)){
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(identityName);
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Disable);
+}
+ 
+accreqs.add(accReq);  
+plan.setAccountRequests(accreqs);  
+plan.setIdentity(identityObject);
+System.out.println(plan.toXml());
+return plan]]></Source>
+    </Script>
+    <Transition to="Build Approval Set"/>
+  </Step>
+  <Step icon="Default" name="Modify Plan" posX="138" posY="128" resultVariable="plan">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
+import sailpoint.object.ProvisioningPlan.AccountRequest;  
+import sailpoint.object.ProvisioningPlan.AttributeRequest;              
+import java.util.List;  
+import java.util.ArrayList;  
+import sailpoint.object.Identity;                        
+import sailpoint.tools.*;
+import sailpoint.api.*;
+import sailpoint.object.*;
+  SailPointContext context= SailPointFactory.getCurrentContext();
+String appName=identityModel.get("application");
+String ADapp="Dexperts AD Group 13";
+String JDBCapp="Dexperts JDBC Group 13";  
+ProvisioningPlan plan = new ProvisioningPlan();      
+String identityName=identityModel.get("userName");
+String newOU=identityModel.get("ou");
+String newGroup=identityModel.get("adGroup"); 
+String modifyOUgroup=identityModel.get("mopug");       
+Identity identityObject = context.getObjectByName(Identity.class, identityName);  
+String firstName=identityObject.getAttribute("firstname");
+String lastName=identityObject.getAttribute("lastname");
+String managerName=identityObject.getAttribute("manager");
+List accreqs = new ArrayList();                                     
+//create AD account  
+AccountRequest accReq = new AccountRequest();  
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Modify);  
+accReq.setApplication(appName); 
+if (ADapp.equals(appName)){
+//Plan for AD Application
+
+if("Modify Group".equals(modifyOUgroup)){
+//Work for adding in the group
+
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links )//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+
+String managedAttributes="CN="+newGroup+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+//CN=HrGroup,OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local
+//
+accReq.add(new AttributeRequest("memberOf",ProvisioningPlan.Operation.Add,managedAttributes));
+}
+else if("Modify OU".equals(modifyOUgroup)){
+//Work for OU moving
+
+String nativeIdentity;
+    
+IdentityService serv=new IdentityService(context);
+Application app=context.getObjectByName(Application.class,appName);
+List links=serv.getLinks(identityObject,app);
+	 
+			if(null != links )//&& !links.isEmpty())
+      {
+        Link link=links.get(0);
+       nativeIdentity =link.getNativeIdentity();
+      }
+
+System.out.println("nativeIdentity"+nativeIdentity);
+plan.setIdentity(identityObject);
+accReq.setNativeIdentity(nativeIdentity);
+//String dn="CN="+identityName+",OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+String dn="CN="+identityName;
+String dnPath="OU="+newOU+",OU=Dexpert,DC=ittaster,DC=local";
+//accReq.setNativeIdentity(dn);
+System.out.println(dn);
+accReq.add(new AttributeRequest("AC_NewName",ProvisioningPlan.Operation.Set,dn));
+accReq.add(new AttributeRequest("AC_NewParent",ProvisioningPlan.Operation.Set,dnPath));//ProvisioningPlan.Operation.Set,
+
+}
+}
+else if (JDBCapp.equals(appName))
+{
+//Plan for JDBC Application
+accReq.setNativeIdentity(identityName);
+String jobCode=identityModel.get("mySqlDb");
+accReq.add(new AttributeRequest("jobCode",ProvisioningPlan.Operation.Add,jobCode));
+}
+ 
+accreqs.add(accReq);  
+plan.setAccountRequests(accreqs);  
+plan.setIdentity(identityObject);
+System.out.println(plan.toXml());
+return plan]]></Source>
+    </Script>
+    <Transition to="Build Approval Set"/>
+  </Step>
+  <Step icon="Default" name="Create Plan" posX="83" resultVariable="plan">
+    <Arg name="project" value="ref:project"/>
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.object.ProvisioningPlan;  
+import sailpoint.object.ProvisioningPlan.AccountRequest;  
+import sailpoint.object.ProvisioningPlan.AttributeRequest;              
+import java.util.List;  
+import java.util.ArrayList;  
+import sailpoint.object.Identity;                        
+import sailpoint.tools.*;
+import sailpoint.api.*;
+import sailpoint.object.*;
+  SailPointContext context= SailPointFactory.getCurrentContext();
+String appName=identityModel.get("application");
+String ADapp="Dexperts AD Group 13";
+String JDBCapp="Dexperts JDBC Group 13";  
+ProvisioningPlan plan = new ProvisioningPlan();      
+String identityName=identityModel.get("userName");      
+Identity identityObject = context.getObjectByName(Identity.class, identityName);  
+String firstName=identityObject.getAttribute("firstname");
+String lastName=identityObject.getAttribute("lastname");
+String managerName=identityObject.getAttribute("manager");
+List accreqs = new ArrayList();                                     
+//create AD account  
+AccountRequest accReq = new AccountRequest();  
+accReq.setOperation(ProvisioningPlan.AccountRequest.Operation.Create);  
+accReq.setApplication(appName); 
+if (ADapp.equals(appName)){
+//Plan for AD Application
+String dn="CN="+identityName+",OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local";
+accReq.setNativeIdentity(dn);
+accReq.add(new AttributeRequest("samAccountName",ProvisioningPlan.Operation.Set,identityName));
+accReq.add(new AttributeRequest("password",ProvisioningPlan.Operation.Add,"nepal123!"));
+accReq.add(new AttributeRequest("distinguishedName",ProvisioningPlan.Operation.Set,dn));
+}
+else if (JDBCapp.equals(appName))
+{
+//Plan for JDBC Application
+accReq.setNativeIdentity(identityName);
+//accReq.add(new AttributeRequest("User Name",ProvisioningPlan.Operation.Add,identityName));
+accReq.add(new AttributeRequest("First Name",ProvisioningPlan.Operation.Add,firstName));
+accReq.add(new AttributeRequest("Last Name",ProvisioningPlan.Operation.Add,lastName));
+}
+ 
+accreqs.add(accReq);  
+plan.setAccountRequests(accreqs);  
+plan.setIdentity(identityObject);
+System.out.println(plan.toXml());
+return plan]]></Source>
+    </Script>
+    <Transition to="Build Approval Set"/>
+  </Step>
+  <Step icon="Default" name="JDBC Provision" posX="657" posY="274">
+    <Arg name="plan" value="ref:plan"/>
+    <Script>
+      <Source><![CDATA[import java.sql.*;
+import sailpoint.object.*;
+import saipoint.api.*;
+import sailpoint.connector.Connector;
+import sailpoint.connector.ConnectorFactory;
+import java.lang.*;
+Application app = context.getObject(Application.class,identityModel.get("application"));
+/*
+HashMap map = new HashMap();
+map.put("url",app.getAttributeValue("url"));
+map.put("user", app.getAttributeValue("user"));
+map.put("password", context.decrypt (app.getAttributeValue("password")));
+map.put("driverClass", app.getAttributeValue("driverClass"));
+Connection connection= JdbcUtil.getConnection(map);*/
+String URL = app.getAttributeValue("url");
+String USER = app.getAttributeValue("user");
+String PASS = context.decrypt (app.getAttributeValue("password"));
+Connection connection = DriverManager.getConnection(URL, USER, PASS);
+
+String fname;
+String lname;
+String jobCode;
+System.out.println("In JDBC Provision");
+StringBuffer queryBuffer = new StringBuffer();  
+List accountRequests = plan.getAccountRequests(identityModel.get("application"));	  
+for(AccountRequest accRequest: accountRequests){
+if(AccountRequest.Operation.Create.equals(accRequest.getOperation())){
+List attributeRequests = accRequest.getAttributeRequests();
+for(AttributeRequest attRequest: attributeRequests){
+if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
+if (attRequest.getName().equals("First Name")) {
+			fname = (String)attRequest.getValue();
+			System.out.println(fname);
+			}
+if (attRequest.getName().equals("Last Name")) {
+			lname = (String)attRequest.getValue();
+			System.out.println(lname);
+			}			
+}
+}
+queryBuffer = new StringBuffer();
+queryBuffer.append("Insert into workflowdb.workflowtable (`User Name`,`First Name`,`Last Name`) value(");
+queryBuffer.append("'"+identityModel.get("userName")+"','"+fname+"','"+lname+"')");
+}
+
+
+else if(AccountRequest.Operation.Modify.equals(accRequest.getOperation())){
+List attributeRequests = accRequest.getAttributeRequests();
+for(AttributeRequest attRequest: attributeRequests){
+if(ProvisioningPlan.Operation.Add.equals(attRequest.getOperation())){
+if (attRequest.getName().equals("jobCode")) {
+			jobCode = (String)attRequest.getValue();
+			System.out.println(jobCode);
+			}			
+}
+}
+queryBuffer = new StringBuffer();//UPDATE `workflowdb`.`workflowtable` SET `JobCode` = 'IT' WHERE `User Name` ='
+queryBuffer.append("UPDATE `workflowdb`.`workflowtable` SET `JobCode` = '"+jobCode+"' WHERE `User Name` ='"+identityModel.get("userName")+"'");
+}
+else if(AccountRequest.Operation.Disable.equals(accRequest.getOperation())){
+List attributeRequests = accRequest.getAttributeRequests();
+
+queryBuffer = new StringBuffer();
+queryBuffer.append("DELETE FROM `workflowdb`.`workflowtable` WHERE `User Name` ='"+identityModel.get("userName")+"'");
+}
+
+Statement stmt =null;
+		String query = queryBuffer.toString();
+                  System.out.println(query);
+		ProvisioningResult result = new ProvisioningResult();
+		try {
+			stmt = connection.createStatement();
+			stmt.execute(query);
+			result.setStatus(ProvisioningResult.STATUS_COMMITTED);
+		}catch (Exception e) {
+		result.addError(e.getMessage());
+		result.setStatus(ProvisioningResult.STATUS_FAILED);
+		}finally {
+			if (stmt !=null)
+				stmt.close();	
+		}
+}]]></Source>
+    </Script>
+    <Transition to="Account aggregation"/>
+  </Step>
+  <Step icon="Default" name="Get Identity" posX="228" posY="88" resultVariable="identityName">
+    <Script>
+      <Source><![CDATA[import sailpoint.object.*;
+String identityName=identityModel.get("userName"); 
+return identityName;]]></Source>
+    </Script>
+    <Transition to="compile"/>
+  </Step>
+  <Step icon="Default" name="Account aggregation" posX="789" posY="248">
+    <Arg name="identityModel" value="ref:identityModel"/>
+    <Script>
+      <Source><![CDATA[import sailpoint.launch.Launcher;
+
+import org.apache.log4j.Logger;
+import java.lang.*;
+import org.apache.log4j.Level;
+  import sailpoint.object.*;
+  import sailpoint.api.*;
+
+ SailPointContext context= SailPointFactory.getCurrentContext();
+String appName="Dexpert Group 13 JDBC Aggregation";
+System.out.println(appName);
+TaskManager tm = new TaskManager(context);
+TaskResult result = tm.runSync(appName, new HashMap());]]></Source>
+    </Script>
+    <Transition to="EndIR"/>
+  </Step>
+</Workflow>

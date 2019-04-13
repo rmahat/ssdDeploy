@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Form hidden="true" name="CreateModifyDeleteForm" type="RegisterIdentity">
+  <Attributes>
+    <Map>
+      <entry key="pageTitle" value="User Selection Form"/>
+    </Map>
+  </Attributes>
+  <Section>
+    <Field displayName="UserName" dynamic="true" filterString="" name="userName" postBack="true" required="true" type="sailpoint.object.Identity"/>
+    <Field displayName="Application" dynamic="true" filterString="" name="application" postBack="true" required="true" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>Dexperts AD Group 13</String>
+            <String>Dexperts JDBC Group 13</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+    </Field>
+    <Field dependencies="userName,application" displayName="Select Operation" dynamic="true" filterString="" name="operation" postBack="true" required="true" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>Create</String>
+            <String>Modify</String>
+            <String>Delete</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+      <ValidationScript>
+        <Includes>
+          <Reference class="sailpoint.object.Rule" name="CreateModifyDelete Rules Library"/>
+        </Includes>
+        <Source><![CDATA[
+				 import sailpoint.object.*;
+				 import sailpoint.api.*;
+				 //SailPointContext context= SailPointFactory.getCurrentContext();
+				 Identity testIdentity=context.getObjectByName(Identity.class,userName);
+				 String name=testIdentity.getName();
+				 System.out.println(name);
+					if ("Create".equals(value) @and isADuserAlready(testIdentity,application)) {
+					
+					return "The "+application+" for "+name+" already Exist. Choose other operation";
+					}
+					else if ("Modify".equals(value) @and ! isADuserAlready(testIdentity,application)) {
+					
+					return "The "+application+" for "+name+" is not created yet. Create user first";
+					}
+					else if ("Delete".equals(value) @and ! isADuserAlready(testIdentity,application)) {
+					
+					return "The "+application+" for "+name+" is not created yet. Create user first";
+					}
+					else
+					return null;
+					
+				]]></Source>
+      </ValidationScript>
+    </Field>
+    <Field displayName="Modify OU/Group" dynamic="true" filterString="" name="mopug" postBack="true" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>Modify OU</String>
+            <String>Modify Group</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+      <Attributes>
+        <Map>
+          <entry key="hidden">
+            <value>
+              <Script>
+                <Source><![CDATA[
+								import sailpoint.object.*;
+								if ("Modify".equals(operation) @and "Dexperts AD Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							]]></Source>
+              </Script>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+    </Field>
+    <Field displayName="Choose New OU" dynamic="true" filterString="" name="ou" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>TEXAS</String>
+            <String>NEWYORK</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+      <Attributes>
+        <Map>
+          <entry key="hidden">
+            <value>
+              <Script>
+                <Source><![CDATA[
+								import sailpoint.object.*;
+								if ("Modify OU".equals(mopug) @and "Dexperts AD Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							]]></Source>
+              </Script>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+    </Field>
+    <Field displayName="Choose New Group" dynamic="true" filterString="" name="adGroup" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>FinanceGroup</String>
+            <String>HrGroup</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+      <Attributes>
+        <Map>
+          <entry key="hidden">
+            <value>
+              <Script>
+                <Source><![CDATA[
+								if ("Modify Group".equals(mopug) @and "Dexperts AD Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							]]></Source>
+              </Script>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+    </Field>
+    <Field displayName="Choose New Job Code" dynamic="true" filterString="" name="mySqlDb" type="string">
+      <AllowedValuesDefinition>
+        <Value>
+          <List>
+            <String>Developer</String>
+            <String>IT</String>
+            <String>HR</String>
+          </List>
+        </Value>
+      </AllowedValuesDefinition>
+      <Attributes>
+        <Map>
+          <entry key="hidden">
+            <value>
+              <Script>
+                <Source><![CDATA[
+								if ("Modify".equals(operation) @and "Dexperts JDBC Group 13".equals(application)) {
+								//field.setRequired(true);
+								return false;
+								} else {
+								return true;
+								}
+							]]></Source>
+              </Script>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+      <RuleRef>
+        <Reference class="sailpoint.object.Rule" name="CreateModifyDelete Rules Library"/>
+      </RuleRef>
+    </Field>
+  </Section>
+  <Button action="next" label="Submit"/>
+  <Button action="back" label="Back"/>
+</Form>

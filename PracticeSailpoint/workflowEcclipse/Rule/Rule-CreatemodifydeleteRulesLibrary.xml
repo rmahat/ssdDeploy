@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name="CreateModifyDelete Rules Library" type="FieldValue">
+  <Signature returnType="Map">
+    <Inputs>
+      <Argument name="log">
+        <Description>  
+      The log object associated with the SailPointContext.  
+      </Description>
+      </Argument>
+      <Argument name="context">
+        <Description>  
+        A sailpoint.api.SailPointContext object that can be used to query the database if necessary.  
+      </Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source><![CDATA[
+	import sailpoint.api.SailPointFactory;
+	import sailpoint.api.SailPointContext;
+	import sailpoint.api.Provisioner;
+	import sailpoint.object.*;
+	import sailpoint.api.*;
+	import sailpoint.object.ProvisioningPlan.AttributeRequest;
+	import sailpoint.object.ProvisioningPlan.AccountRequest;
+    import sailpoint.object.ProvisioningPlan.Operation; 
+	import sailpoint.tools.Util;
+    import sailpoint.tools.Message;
+    import sailpoint.tools.GeneralException;
+    import java.sql.Connection;
+	import java.sql.PreparedStatement;
+	import java.sql.ResultSet;
+	import java.sql.SQLException;
+	import java.sql.DriverManager;
+    import java.sql.Timestamp;
+	import java.util.*;
+	import java.text.*;
+	import javax.naming.Context;
+	import javax.naming.InitialContext;
+	import javax.sql.DataSource;
+	import sailpoint.api.PasswordGenerator;
+	import sailpoint.api.Matchmaker;
+	
+	
+    import org.apache.commons.logging.Log;
+	import org.apache.commons.logging.LogFactory;
+	//SailPointContext context =new SailPointContext;
+	//private Log logger = LogFactory.getLog("rule.SP.Joiner.RulesLibrary");
+	
+	/**
+	 * Returns boolean by checking the user with same name have already  
+	 * the account in identitycube
+	 * @param  User Identity to check the the identity
+	 * @return      true if user name is already
+	 */
+	 
+	 
+	public boolean isUserAlready(String testUser){
+		
+		Identity identity=context.getObjectByName(Identity.class,testUser);
+		  boolean bolval=false;
+		  if (identity!=null){
+		  System.out.println(identity.getName());
+		  bolval=true;
+		  }
+		  else{
+		  System.out.println("The identity is null");
+		  bolval=false;
+		  }
+		  return bolval;
+	}
+	
+	
+	public String getADparam(String applicationName,Identity identityObject, String param){
+  Application appObject = context.getObjectByName(Application.class, applicationName);
+  String retVal;
+   // String appConnName = appObject.getConnector();
+    IdentityService is = new IdentityService(context);
+    List links = is.getLinks(identityObject,appObject);
+    for(Link link : links)
+    {     //loops through all identities links for My Application Name 
+      retVal = link.getAttribute(param);
+    }	  
+		  return retVal;
+	}
+	
+	
+	public boolean isADuserAlready(Identity identity,String appName){
+		String testUser=identity.getName();
+		  QueryOptions qo = new QueryOptions();
+          qo.add(Filter.eq("links.application.name", appName), Filter.eq("name",testUser));
+		  List ma = context.getObjects(Identity.class, qo); 
+		  boolean bolval=false;
+		  if(ma!=null @and !ma.isEmpty()){
+			bolval=true;
+		  System.out.println("The user is already in "+appName);
+		  }
+		else {
+		  System.out.println("The user is not in "+appName);
+		  bolval=false;
+		  }
+		  return bolval;
+	}
+	
+	
+	public List getApplications(Identity identity){
+		List links = identity.getLinks();  
+		List appList=new ArrayList();
+		for (Link link: links) {  
+		  Application application = link.getApplication();  
+		  String appName =application.getName();
+		  appList.add(appName);
+		}  
+		  
+		  
+		  
+		 return appList;
+	
+	}
+	
+	public List getSubordinates(Identity managerIdentity){
+	
+	  String managerId =managerIdentity.getName();
+	  List managerList=new ArrayList();
+	  List identity = context.getObjects(Identity.class);
+	  for (Identity iden : identity){
+	  
+	  String identityName = iden.getName();
+	   if(identityName !=null){
+			  Identity identity=context.getObject(Identity.class,identityName);
+			  Identity managerName=identity.getManager();
+			  if(managerName!=null){
+				String manager=managerName.getName();
+				if (manager.equals(managerId)){
+				   managerList.add(identityName);
+				}
+					}
+	   }
+	  }
+	   
+	  
+	  return managerList;
+	
+	}
+	
+	//return list of identity who are manager
+	public List getManagers(){
+	  List managerList=new ArrayList();
+	  List identity = context.getObjects(Identity.class);
+	  for (Identity iden : identity){
+	  iden.setInactive(false);
+	  String identityName = iden.getName();
+	   if(identityName !=null){
+			  Identity identity=context.getObject(Identity.class,identityName);
+			  Identity managerName=identity.getManager();
+			  if(managerName!=null){
+			  String manager=managerName.getName();
+			  managerList.add(manager);
+			   }
+			 
+			   }
+	   
+	  }
+	   List uniqueManagerList = new ArrayList();
+
+			// Record encountered Strings in HashSet.
+			HashSet set = new HashSet();
+
+			// Loop over argument list.
+			for (String item : managerList) {
+
+				// If String is not in set, add it to the list and the set.
+				if (!set.contains(item)) {
+					uniqueManagerList.add(item);
+					set.add(item);
+				}
+			}
+	  List managerIdentityList =new ArrayList();
+	  for (String managerId:uniqueManagerList){
+	   Identity identity=context.getObject(Identity.class,managerId);
+		managerIdentityList.add(identity);
+	  }
+	  
+	  return managerIdentityList;
+	
+	}
+	
+	public List getManagedAttributesByApplication(String applicationName){
+		Filter f1 = Filter.eq("application.name",applicationName);
+
+		QueryOptions qo = new QueryOptions();
+
+		qo.addFilter(f1);
+
+		List managedAttributes = context.getObjects(ManagedAttribute.class, qo); 
+		  
+		List list = new ArrayList();
+		  
+		  for (ManagedAttribute ent : managedAttributes){
+		  
+		  String attributeValue = ent.getValue();//CN=FinanceGroup,OU=TEXAS,OU=Dexpert,DC=ittaster,DC=local
+		  list.add(attributeValue);
+		  //String attribute= ent.getAttribute();//memberof
+		  }
+		  
+		  return list;
+	
+	
+	}
+	
+	
+	
+	
+	public String getNativeIdentity(SailPointContext context, String appName, Identity identity){
+		logger.trace("Enter getNativeIdentity");
+		String nativeId = "";
+		
+		Application app = context.getObjectByName(Application.class, appName);
+		
+		Schema schema = app.getAccountSchema();
+		String niField = schema.getIdentityAttribute();
+		
+		logger.trace("The native id field is: " + niField);
+		
+		List templates = app.getTemplates();
+		Template updateTemp = null;
+		
+		if (templates != null && templates.size() > 0){
+			logger.trace("loop the templates");
+			
+			for (Template temp : templates){
+				Template.Usage usage = temp.getUsage();
+				if (usage.equals(Template.Usage.Create)){
+					logger.trace("Set to create template in case no update");
+					updateTemp = temp;
+					break;
+				}
+			}
+			
+			if (updateTemp != null){
+			
+				List fields = updateTemp.getFields();
+				
+				if (fields != null && fields.size() > 0){
+					for (Field field : fields){
+						logger.trace("Get field name");
+						String fieldName = field.getName();
+						String displayName = field.getDisplayName();
+						
+						if (niField.compareTo(fieldName) == 0){
+							Rule rule = field.getFieldRule();
+							
+							HashMap params = new HashMap();
+						
+							params.put("context", context);
+							params.put("identity", identity);
+							params.put("field", field);
+							
+							try {
+								logger.trace("Run the rule");
+								nativeId = context.runRule(rule, params);
+							} catch (Exception re){
+								logger.error("*** EXCEPTION RUNNING RULE/SCRIPT: " + re.toString());
+								continue;
+							}
+						}		
+					}
+				}
+			}
+		}
+		
+		
+		logger.trace("Exit getNativeIdentity: " + nativeId);
+		return nativeId;
+	}
+	
+/*
+public boolean isUserAlready(Identity identity){
+		
+		String testUser=identity.getName();
+		Filter f1 = Filter.eq("name",testUser);
+		QueryOptions qo = new QueryOptions();
+		qo.addFilter(f1);
+		List ma = context.getObjects(Identity.class, qo); 
+		 int len=0;
+		 try {
+		  len=ma.size();
+		  boolean bolval=false;
+		  if(len==1){
+			bolval=true;
+		  }
+		  }
+		  catch(Exception e){
+		  
+		  bolval=false
+		  }
+		  return bolval;	
+	}
+*/
+	
+	
+	]]></Source>
+</Rule>
