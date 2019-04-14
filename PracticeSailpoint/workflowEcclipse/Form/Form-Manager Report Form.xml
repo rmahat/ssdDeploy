@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Form PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Form  hidden="true"  name="Dexperts Audit Form" type="Report">
+  <Section columns="1" label="Audit Report Options" name="auditProperties">
+    <Field displayName="manager" filterString="" name="manager" type="String">
+      <AllowedValuesDefinition>
+        <Script>
+          <Source>
+  import sailpoint.object.*;
+  import org.apache.log4j.Logger;
+  List managerList=new ArrayList();
+  List identity = context.getObjects(Identity.class);
+  for (Identity iden : identity){
+  
+  String identityName = iden.getName();
+   if(identityName !=null){
+          Identity identity=context.getObject(Identity.class,identityName);
+          Identity managerName=identity.getManager();
+          if(managerName!=null){
+          String manager=managerName.getName();
+          managerList.add(manager);
+           }
+         
+           }
+   
+  }
+   List uniqueManagerList = new ArrayList();
+
+        // Record encountered Strings in HashSet.
+        HashSet set = new HashSet();
+
+        // Loop over argument list.
+        for (String item : managerList) {
+
+            // If String is not in set, add it to the list and the set.
+            if (!set.contains(item)) {
+                uniqueManagerList.add(item);
+                set.add(item);
+            }
+        }
+  List managerIdentityList =new ArrayList();
+  for (String managerId:uniqueManagerList){
+   Identity identity=context.getObject(Identity.class,managerId);
+    managerIdentityList.add(identity);
+  }
+  
+  return uniqueManagerList;
+         
+         
+        </Source>
+        </Script>
+      </AllowedValuesDefinition>
+    </Field>
+  </Section>
+</Form>
