@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<DashboardContent name="Access Request Status" regionSize="1" source="dashboard/contentAccessRequest.xhtml" title="dash_title_lcm_access_request" type="Lifecycle">
-  <Description>dash_desc_lcm_access_request</Description>
-  <RequiredRights>
-    <Reference class="sailpoint.object.SPRight" name="ViewAccessRequest"/>
-  </RequiredRights>
-</DashboardContent>

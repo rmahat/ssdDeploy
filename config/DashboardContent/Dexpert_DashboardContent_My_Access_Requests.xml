@@ -1,5 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<DashboardContent name="My Access Requests" regionSize="1" source="dashboard/contentMyRequests.xhtml" title="dash_title_lcm_my_requests" type="My">
-  <Description>dash_desc_lcm_my_requests</Description>
-</DashboardContent>

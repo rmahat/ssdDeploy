@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<DashboardContent name="Signoff Status" regionSize="0" source="dashboard/contentSignoffStatus.xhtml" title="dash_title_signoff_status" type="Compliance">
-  <Description>dash_description_signoff_status</Description>
-  <RequiredRights>
-    <Reference class="sailpoint.object.SPRight" name="ViewSignoffStatus"/>
-  </RequiredRights>
-</DashboardContent>

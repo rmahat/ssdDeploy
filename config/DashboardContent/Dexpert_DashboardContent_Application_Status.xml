@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE DashboardContent PUBLIC "sailpoint.dtd" "sailpoint.dtd">
-<DashboardContent name="Application Status" regionSize="0" source="dashboard/contentApplicationStatus.xhtml" title="dash_title_app_status" type="Compliance">
-  <Description>dash_description_app_status</Description>
-  <RequiredRights>
-    <Reference class="sailpoint.object.SPRight" name="ViewApplicationStatus"/>
-  </RequiredRights>
-</DashboardContent>
