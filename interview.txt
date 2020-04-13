@@ -1,0 +1,41 @@
+Three modules of sailpoint
+	Governance
+		RBAC, Policy
+	LifeCycle Module
+		Joiner, Mover, Leaver
+		Custom Workflow
+	Compliance
+		Certification
+			Different types of certification 
+			Rule used in certification
+	
+	Application onboarding
+		Types
+			Active Directory
+			LDAP/Linux/AWS/Azure
+			ServiceNow
+			Custom Connector
+		Aggregation Rule
+		Listner rule
+	SSD for deploymment in different environment
+	Migration , Upgrade
+	Rules
+	Reports
+	
+	
+	Scripts:
+So, in sailpoint i would say i have been mostly focused on identityiq platform but over the time i also get chance to work on identitynow and other SSO tools like okta, but over my carreer i have been focused on idenetityiq.
+
+From the sailpoint iiq perspective i have worked with different modules that sailpoint provides.
+
+So i have worked with life cycle management part of it which envolves different JML process either building JML from scratch or and  levraging SSF for JML process. I have also designed and build my own custom workflow to meets some specific client requirements. And over the process while building that i also build my own custom rule library , own custom classes and writing custom scripts to meet the business requirements.
+
+From my integartion  standpoint standpoint i have integrated diffentrent system such as  ad ldap jdbc, flatfioles service noe,webservice connector, custom integration config, database coeentot like oracle and sql direct.
+ 
+ Moving on to compliance which is more toward certification, i have good exposure on both periodic and event based certification. in periodic based certification i have workwith manager , entitlement owner, role owner, advance certs and customizing certification to meet client requirments by writing different kind of rule that exist is certification like exclusion rule, pre-delegation rule, sign-off approver rule.
+
+On the governance side, i have worked with policies- role SOD policy, entitlements SOD policy . Wherever i could not leverage role and ent SOD i have used advance SOD policies. 
+
+I have also worked with roles implementing RBAC into different end system specificlly in sailpoint iiq levraging sailpoint techniques,provides mainly business role, IT roles.
+
+In addition to that, i have also worked on  custom report whenever OOB reports donot meet client requirements. So custom report also build custom reports using fliter, HQL, java.
