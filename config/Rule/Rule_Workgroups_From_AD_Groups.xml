@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule language="beanshell" name=" Refresh Workgroups From AD Groups">
+  <Description>
+  Some IdentityIQ installations prefer to drive membership in WorkGroups
+  defined in IdentityIQ by membership in groups defined in an Active Directory
+  system.  This rule is used to refresh the membership in IIQ's work groups
+  based on the data that came in from the most recent group aggregation
+  run against active directory.
+  
+  This rule expects the following prerequeisites:
+  
+  ManagedAttributes (Entitlement Catalog) items need to have an extended
+  attribute named "" that indicates that a workgroup's membership is
+  based on this group's membership from AD.  A null in this field indiciates 
+  that group has no corresponding IdentityIQ workgroup, a String in this field
+  contains the the name of the IdentityIQ Workgroup object driven from 
+  this active directory group.    
+  </Description>
+  <Signature returnType="RemediationItem">
+    <Inputs>
+      <Argument name="context">
+        <Description>
+          A sailpoint.api.SailPointContext object that can be used to
+          access the database.
+        </Description>
+      </Argument>
+      <Argument name="log">
+        <Description>
+          The log object associated with the SailPointContext.
+        </Description>
+      </Argument>
+    </Inputs>
+  </Signature>
+  <Source>
+    
+
+import sailpoint.object.Application;
+import sailpoint.object.Filter;
+import sailpoint.object.Identity;
+import sailpoint.object.Link;
+import sailpoint.object.ManagedAttribute;
+import sailpoint.object.QueryOptions;
+import sailpoint.object.TaskResult;
+import sailpoint.api.Terminator;
+import org.apache.log4j.Logger;
+
+Logger log = Logger.getLogger("xxx.rule.RefreshWorkgroupsfromADGroups");
+
+// What is the name of the Active Directory applicaiton in this environment.
+// Edit this to match your environment.
+// String appName = "Active Directory";  
+String appName = "XXXXX";
+
+// What is the name of the extended attribute on the ManagedAttribute object
+// that is used to store the name of the IIQ WorkGroup corresponding to the 
+// AD group.  Edit this to match your environment.
+// String wgAttribute = "workgroup";
+String wgAttribute = "iiqWorkgroup";
+
+// A string to append our task results to as we process.
+String resultString = "";
+
+// Bail out early if we do not have a valid Active Directory application.
+Application app = context.getObjectByName(Application.class, appName);
+if (null == app) {
+   String errMsg = "ERROR: Could not find AD application named: " + appName; 
+   System.out.println(errMsg);
+   log.error(errMsg);
+   resultString += errMsg + "\n";
+   return resultString;
+}
+resultString += "Processing Workgroup memberships from application [" + appName + "]\n";
+
+HashMap visitedWorkgropus = new HashMap();
+
+QueryOptions opManagedAttrs = new QueryOptions();
+opManagedAttrs.addFilter(Filter.eq("application", app));
+opManagedAttrs.addFilter(Filter.notnull(wgAttribute));
+
+Iterator it = null;
+try {
+   it = context.search(ManagedAttribute.class, opManagedAttrs);
+} catch (sailpoint.tools.GeneralException ge) {
+   resultString += "ERROR: workgroup attribute [" + wgAttribute + "] " + 
+                   "not defined on ManagedAttribute object.\n";
+   resultString += "Please verify the settings in System Setup -> " + 
+                   "Entitlement Catalog Attributes.\n";
+   resultString += ge.getMessage() + "\n";
+   return resultString;
+}
+while ((null != it) &amp;&amp; (it.hasNext())) {
+
+   ManagedAttribute ma = it.next();
+   log.debug("Got Managed Attribute id:" + ma.getId());
+   resultString += "Processing AD group [" + ma.getDisplayName() + "]\n";
+   
+   //String wgName = ma.getAttribute(wgAttribute);
+   Object wgName = ma.getAttribute(wgAttribute);
+   log.debug("Workgroup Linked:" + wgName);
+   resultString += "WorkGroup [" + wgName + "]\n";
+   Identity wg = context.getObject(Identity.class, wgName);
+   //Identity wg = (Identity) wgName;
+   if (null == wg) {
+   
+      String errMsg = "WARNING: Could not find workgroup named: " + wgName + ", skipping.";
+      System.out.println(errMsg);
+      log.error(errMsg);
+      resultString += errMsg + "\n";
+      resultString += "WARNING:   Please add this workgroup to IIQ or remove the \n";
+      resultString += "WARNING:   workgroup name from the entitlement catalog entry. \n";
+      
+      // Skip the to the next ManagedAttribute in the while() loop.
+      continue;       
+   }
+   
+   log.debug("Workgroup name:" + wg.getName());
+   resultString += "AD group [" + ma.getDisplayName() + "] drives Workgroup [" + wgName + "]\n";
+   
+   // It is easy to mis-configure IdentityIQ such that two AD Gropus attempt to drive
+   // membership in the same single IdentityIQ workroup.  Detect sitations when that
+   // happens and inform the user in the task result.
+   String seenBefore = (String) visitedWorkgropus.get(wgName);
+   if (null != seenBefore) {
+      resultString += "WARNING: Two AD groups are trying to manage the same IIQ Workgroup.\n";
+      resultString += "WARNING:   first: " + seenBefore + "\n";
+      resultString += "WARNING:  second: " + ma.getDisplayName() + "\n";      
+   }   
+   visitedWorkgropus.put(wgName, ma.getDisplayName());
+
+   HashSet haveWorkgroup = new HashSet();
+   HashSet shouldHaveWorkgroup = new HashSet();
+   HashSet removeWorkgroup = new HashSet();
+   HashSet addWorkgroup = new HashSet();
+
+   // Get the identities that should be in the Workgroup based on AD's "member"
+   Object members = ma.getAttribute("member");
+   if ((members != null) &amp;&amp; (members instanceof List)) {
+   
+       log.debug("Gonna query users that have managed attribute");
+       QueryOptions qo = new QueryOptions();
+       qo.addFilter(Filter.in("links.nativeIdentity", members));
+       Iterator itShould = context.search(Identity.class, qo);
+       while (itShould.hasNext()) {
+           Identity idShould = itShould.next();
+           log.debug("ID Should ID:" + idShould.getName());
+           shouldHaveWorkgroup.add(idShould);
+       }
+       log.debug("Identities Should size:" + shouldHaveWorkgroup.size());
+   } else {
+       log.debug("Members was null");       
+   }
+
+   QueryOptions qoHave = new QueryOptions();
+   qoHave.addFilter(Filter.eq("workgroups.id", wg.getId()));
+   Iterator itHave = context.search(Identity.class, qoHave);
+   while (itHave.hasNext()) {
+       Identity idHave = itHave.next();
+       haveWorkgroup.add(idHave);
+       resultString += " - Identity " + idHave.getName() + " correctly has membership.\n";
+   }
+   log.debug("Identities Have size:" + haveWorkgroup.size());
+
+   for (Identity id : shouldHaveWorkgroup) {
+      if (!haveWorkgroup.contains(id)) {
+          addWorkgroup.add(id);
+          resultString += " - Identity " + id.getName() + " will be given membership.\n";
+      }
+   }
+
+   for (Identity id : haveWorkgroup) {
+      if (!shouldHaveWorkgroup.contains(id)) {
+          removeWorkgroup.add(id);
+          resultString += " - Identity " + id.getName() + " will removed from workgroup.\n";
+      }
+   }
+
+   log.debug("Removing workgroup from identities");
+   for (Identity id : removeWorkgroup) {
+      id.remove(wg);
+      context.saveObject(id);
+      String message = " - Removed user: " + id.getName() + " from workgroup: " + wg.getName(); 
+      log.debug(message);          
+      resultString += message + "\n";
+   }
+
+   log.debug("Adding workgroup to identities");
+   for (Identity id : addWorkgroup) {
+      id.add(wg);
+      context.saveObject(id);
+      String message = " - Added user: " + id.getName() + " to workgroup:" + wg.getName();
+      log.debug(message);          
+      resultString += message + "\n";
+   }
+   
+   // Commit all the changes to the particular identities for this Workgroup.
+   context.saveObject(wg);
+   context.commitTransaction();
+   context.decache();
+   resultString += " - workgroup changes committed to the database.\n";
+     
+}
+
+context.commitTransaction();
+
+return resultString;
+
+Terminator termin = new sailpoint.api.Terminator(context);
+
+
+// ---
+  </Source>
+</Rule>
