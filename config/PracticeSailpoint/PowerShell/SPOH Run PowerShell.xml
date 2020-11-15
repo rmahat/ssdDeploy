@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule created="1556567413247" id="4028b8816a66d37a016a6aa5d1ff0055" language="beanshell" modified="1556568715479" name="SPOH Run PowerShell">
+  <Source>  
+    
+        import sailpoint.object.Application;
+        import sailpoint.object.Rule;
+        import sailpoint.object.ProvisioningPlan.AccountRequest;
+        import sailpoint.object.ProvisioningPlan.AttributeRequest;
+        import sailpoint.object.ProvisioningPlan.Operation;
+        import sailpoint.connector2.ObjectAlreadyExistsException;
+        import sailpoint.tools.CloseableIterator;
+        import sailpoint.tools.GeneralException;
+        import sailpoint.tools.Message;
+        import sailpoint.tools.Util;
+        import sailpoint.tools.xml.XMLReferenceResolver;
+        import sailpoint.connector.*;
+        import sailpoint.connector.RPCService;
+        import sailpoint.object.RpcRequest;
+        import sailpoint.object.RpcResponse;
+        import java.io.*;
+        import java.net.*;
+        import java.util.*;
+        import org.apache.commons.codec.binary.Base64;
+        import org.apache.commons.logging.Log;
+        import org.apache.commons.logging.LogFactory;
+        import org.json.JSONArray;
+        import org.json.simple.JSONObject;
+        import org.json.simple.parser.JSONParser;
+        import org.json.simple.parser.ParseException;
+  
+        /* 
+        This method sends the request to the IQService. 
+        data - Consists of a map of all the objects that are to be sent to IQService. IQService expects the following keys
+        - Application -> Pointing to the application XML
+        - preScript -> Pointing to the rule XML that contains the PowerShell script code
+        - Request -> Pointing to the AccountRequest XML
+        Even though IdentityIQ is making the call just to execute the PowerShell script, the IQService protocol is expecting the "Application"
+        and "Request" objects
+        - rpcService -> This is the string used to identify the service in IQService. In this case we are interested in only executing  
+        the PowerShell script. The value must be "ScriptExecutor".
+        - iqServiceHost - The code can be modified to pick this up from the application
+        - iqServicePort - The code can be modified to pick this up from the application
+         */
+        public RpcResponse callIQService(Map data, String rpcService,String iqServiceHost, int iqServicePort) throws Exception{
+                RPCService service = new RPCService(iqServiceHost, iqServicePort);
+                RpcRequest request = new RpcRequest(rpcService, "runBeforeScript" , data); // We will running this as a "runBeforeScript"
+                RpcResponse response = service.execute(request);
+                return response;
+        }
+
+        /* 
+        This method prepares the request to execute the PowerShell acript on the server running IQService
+        */  
+        public RpcResponse executePowerShellScript(String department, String location, String region) throws Exception {
+            HashMap dataMap = new HashMap();  
+
+            // Get the Active Directory application to put the application XML into the dataMap.  
+            Application app = context.getObject(Application.class, "Dexperts AD Group 13");  
+            Application appObj = app.deepCopy((XMLReferenceResolver)context);  
+            String iqServiceHost = app.getAttributeValue("IQServiceHost");
+            int iqServicePort = Integer.parseInt(app.getAttributeValue("IQServicePort"));
+
+            // Get the rule containing the PowerShell script.  
+            Rule ruleObj = context.getObject(Rule.class, "SPOH PowerShell From Beanshell");  
+            //String ruleSrc = ruleObj.getSource();
+            //ruleObj.setSource(newRuleSrc);  
+            dataMap.put("preScript",ruleObj);  
+            dataMap.put("Application",appObj.getAttributes());  
+
+            // Prepare the AccountRequest object as it is required by the IQService protocol. The Application XML and   
+            // the AccountRequest XML is written to the environment variables before the script is launched. The script can   
+            // make use of the data.
+            String nativeIdentity = "cn=none,OU=" + department + ",OU=" + location + ",OU=" + region + ",OU=Dexpert,DC=ittaster,DC=local";
+            AccountRequest accountRequest = new AccountRequest(AccountRequest.Operation.Modify, app.getName(), null, nativeIdentity);  
+            accountRequest.add(new AttributeRequest("department", Operation.Add, department));
+            //accountRequest.add(new AttributeRequest("region", Operation.Add, region));
+            accountRequest.add(new AttributeRequest("l", Operation.Add, location));
+            dataMap.put("Request",accountRequest);
+            dataMap.put("parentOU","ou=Dexpert,");
+
+            // Call the service
+            //log.debug("iqServiceHost:" + iqServiceHost);
+            //log.debug("iqServicePort:" + iqServicePort);
+            RpcResponse iqserviceResponse = callIQService(dataMap, "ScriptExecutor", iqServiceHost, iqServicePort);  
+            return iqserviceResponse;
+        }
+
+        try {
+            //log.debug(String.format("Department:%s - Location:%s - Region:%s", new String[] {department, location, region}));
+            String _department = (void!=department &amp;&amp; null!=department?department:"Zoning"),
+                   _location = (void!=location &amp;&amp; null!=location?location:"Zapata"),
+                   _region = (void!=region &amp;&amp; null!=region?region:"Americas");
+            // Call the PowerShell script to create a new OU for the new Organization Department.
+            RpcResponse iqserviceResponse = executePowerShellScript(_department, _location, _region);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    
+  </Source>
+</Rule>

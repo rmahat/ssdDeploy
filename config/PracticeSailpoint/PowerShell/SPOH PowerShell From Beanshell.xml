@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule created="1556567423638" id="4028b8816a66d37a016a6aa5fa960056" language="beanshell" modified="1556568133360" name="SPOH PowerShell From Beanshell" type="ConnectorBeforeCreate">
+  <Attributes>
+    <Map>
+      <entry key="ObjectOrientedScript" value="true"/>
+      <entry key="disabled" value="false"/>
+      <entry key="extension" value=".ps1"/>
+      <entry key="program" value="powershell.exe"/>
+      <entry key="timeout" value="60"/>
+    </Map>
+  </Attributes>
+  <Description>  
+    This example is for IQService Script.    
+  </Description>
+  <Source>  
+        write-host "In Before Create script - Running PowerShell From Beanshell"
+        # Refer to SailPoint class library
+        write-host "Loading Utils.dll..."
+        Add-type -path Utils.dll
+
+        # Create Application configuration object
+        $xmlApplication = [xml]$env:application;
+  
+        # Read the environment variables
+        $xmlRequest = [xml]$env:Request;
+        write-host $xmlRequest | out-file .\runningPowerShellFromBeanshell.xml -append;
+        $sReader = New-Object System.IO.StringReader([System.String]$env:Request);
+        # Form the xml reader object
+        $xmlReader = [System.xml.XmlTextReader]([sailpoint.Utils.xml.XmlUtil]::getReader($sReader));
+        # Create SailPoint Request object
+        $requestObject = New-Object Sailpoint.Utils.objects.AccountRequest($xmlReader);
+        $nativeIdentity = $requestObject.NativeIdentity;
+        [string]::format("New DN {0}...", $nativeIdentity);
+
+        # Loop through the attributes from the request
+        # AccountRequest application="Active Directory" op="Create"
+        # nativeIdentity="cn=none,OU=NewDepartment,OU=Location,OU=Region,OU=Dexpert,DC=ittaster,DC=local"
+        foreach ($attribute in $requestObject.AttributeRequests){
+            if($attribute.Name -eq "department"){
+                $department = $attribute.value;
+            } elseif($attribute.Name -eq "region"){
+                $region = $attribute.value;
+            } elseif($attribute.Name -eq "location"){
+                $location = $attribute.value;
+            }
+        }
+
+        # Get application attributes needed to connect to the domain
+        $serverName = $env:computername;
+        $serverPort = $xmlApplication.SelectNodes("//*[@key]") | where { $_.key -eq "port" } | select-object -ExpandProperty value;
+        $searchDN = $xmlApplication.SelectNodes("//*[@key]") | where { $_.key -eq "domainDN" } | select-object -ExpandProperty value;
+        $searchDN = "OU=Dexpert," + $searchDN;
+
+        $root = new-object DirectoryServices.DirectoryEntry(("LDAP://"+$serverName+":"+$serverPort));
+        $baseDN = New-Object DirectoryServices.DirectoryEntry(($root.psbase.path+"/"+$searchDN));
+        [string]::format("Base DN:{0}", $baseDN.psbase.path);
+
+        $ouPositions = 2,1,0;
+        $ouDescriptions = "Department OU", "Location OU", "Region OU";
+
+        $ouBaseDN = $baseDN;
+        [string]::format("Checking if {0} exists...", $baseDN.psbase.path);
+        $ouPositions | foreach {
+            #Determining if any of the OUs in the DN path need to be created
+            $ouToCreateDnPath = $ouBaseDN;
+            $newOU = ($nativeIdentity.replace("\","") -split ",*..=")[$_ + 2];
+            [string]::format("`nDetermining if {0} '{1}' exists in DN path {2}...", $ouDescriptions[$_], $newOU, $ouToCreateDnPath.distinguishedName.toString());
+            $ouSearcher = new-object System.DirectoryServices.DirectorySearcher($ouToCreateDnPath);
+            $ouSearcher.Filter = "(name=$newOU)";
+            if ($ouSearcher.Findall().count -eq 0) {
+                write-host $ouDescriptions[$_] $newOU "does not exists - Creating..."
+                $objNewOU = $ouToCreateDnPath.Create("organizationalUnit", ("OU="+$newOU));
+                $objNewOU.SetInfo();
+                if ($ouSearcher.findall().count -ne 0) {
+                    [string]::format("...Created new {0} {1}!", $ouDescriptions[$_], $newOU);
+                }
+            } else {
+                write-host $ouDescriptions[$_] $newOU "does exists!"
+            }
+            $searchDN = "OU=" + $newOU + "," + $searchDN;
+            $ouBaseDN = New-Object DirectoryServices.DirectoryEntry(($root.psbase.path+"/"+$searchDN));
+        }
+
+        # Write the request xml to file at the path passed as argument  
+        $requestObject.toxml() | out-file .\runningPowerShellFromBeanshell.xml -append
+</Source>
+</Rule>
